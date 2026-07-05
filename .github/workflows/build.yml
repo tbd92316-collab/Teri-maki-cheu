@@ -1,0 +1,94 @@
+name: Build Pay App APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Cordova
+        run: npm install -g cordova
+
+      - name: Create Cordova Project
+        run: |
+          cordova create payapp com.akash.payapp "PayApp"
+          cd payapp
+          cordova platform add android
+
+      - name: Setup Files & Configuration
+        run: |
+          cd payapp
+          # Default files delete karke tumhari repository ki files copy karna
+          rm -rf www/*
+          rsync -av --exclude='payapp' --exclude='.git' --exclude='.github' ../ www/
+
+          # Permissions aur Splash screen ke liye config.xml generate karna
+          cat <<EOF > config.xml
+          <?xml version='1.0' encoding='utf-8'?>
+          <widget id="com.akash.payapp" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
+              <name>PayApp</name>
+              <description>UPI Clone App with Camera & Audio</description>
+              <author>Akash</author>
+              <content src="index.html" />
+              <access origin="*" />
+              <allow-navigation href="*" />
+              <allow-intent href="http://*/*" />
+              <allow-intent href="https://*/*" />
+              
+              <!-- Android Manifest Permissions (Camera & Audio ke liye) -->
+              <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest">
+                  <uses-permission android:name="android.permission.CAMERA" />
+                  <uses-permission android:name="android.permission.RECORD_AUDIO" />
+                  <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+                  <uses-feature android:name="android.hardware.camera" />
+                  <uses-feature android:name="android.hardware.camera.autofocus" />
+              </edit-config>
+
+              <!-- Required Plugins -->
+              <plugin name="cordova-plugin-camera" spec="^6.0.0" />
+              <plugin name="cordova-plugin-media" spec="^7.0.0" />
+              <plugin name="cordova-plugin-splashscreen" spec="^6.0.0" />
+              <plugin name="cordova-plugin-android-permissions" spec="^1.1.5" />
+
+              <!-- Splash Screen Settings (1300ms = 1.3 seconds) -->
+              <preference name="SplashScreenDelay" value="1300" />
+              <preference name="FadeSplashScreenDuration" value="300"/>
+              <preference name="ShowSplashScreenSpinner" value="false" />
+
+              <platform name="android">
+                  <!-- Splash screen image configuration -->
+                  <resource-file src="www/splashscreen.png" target="app/src/main/res/drawable/splashscreen.png" />
+                  <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/drawable/splashscreen.png" />
+                  <preference name="AndroidWindowSplashScreenBackground" value="#0a0a0a" />
+              </platform>
+          </widget>
+          EOF
+
+      - name: Build Debug APK
+        run: |
+          cd payapp
+          cordova build android --debug
+
+      - name: Upload APK File
+        uses: actions/upload-artifact@v4
+        with:
+          name: PayApp-APK
+          path: payapp/platforms/android/app/build/outputs/apk/debug/app-debug.apk
