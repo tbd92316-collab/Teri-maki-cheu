@@ -1122,34 +1122,74 @@
 </div>
 
 <audio id="paymentSound" src="payment.mp3" preload="auto"></audio>
+<script src="cordova.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 <script>
+
+
 let camStream = null;
 let scanLoopId = null;
 
+// Is naye function ko purane openCamera ki jagah replace kar do
 function openCamera() {
   const overlay = document.getElementById('cameraOverlay');
-  const video = document.getElementById('camVideo');
   const hint = document.getElementById('camHint');
   const status = document.getElementById('camStatus');
+  
   overlay.classList.add('open');
-  hint.textContent = 'Point at a QR code';
+  hint.textContent = 'Camera start ho raha hai...';
   status.textContent = 'Scan QR';
 
+  // Check karna ki app Android device (Cordova) me chal rahi hai ya nahi
+  if (window.cordova && cordova.plugins && cordova.plugins.permissions) {
+    var permissions = cordova.plugins.permissions;
+    
+    // Pehle check karo ki camera permission already mili hui hai ya nahi
+    permissions.checkPermission(permissions.CAMERA, function(statusObj) {
+      if (statusObj.hasPermission) {
+        startCameraStream(); // Permission hai, direct camera on karo
+      } else {
+        // Permission nahi hai, toh Screen par "Allow" ka popup dikhao
+        permissions.requestPermission(permissions.CAMERA, function(reqStatus) {
+          if (reqStatus.hasPermission) {
+            startCameraStream();
+          } else {
+            hint.textContent = 'Camera permission deny kar di gayi. Settings me jake allow karein.';
+          }
+        }, function() {
+          hint.textContent = 'Permission error.';
+        });
+      }
+    });
+  } else {
+    // Agar mobile browser me normally test kar rahe ho
+    startCameraStream();
+  }
+}
+
+// Ye function camera stream ko us box me set karega
+function startCameraStream() {
+  const video = document.getElementById('camVideo');
+  const hint = document.getElementById('camHint');
+  
   navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
     .then(stream => {
       camStream = stream;
       video.srcObject = stream;
+      video.setAttribute('playsinline', true); // WebView ke liye zaroori hai
       video.onloadedmetadata = () => {
         video.play();
-        scanLoop();
+        hint.textContent = 'Point at a QR code';
+        scanLoop(); // Scanning ka loop chalu kar do
       };
     })
     .catch(err => {
-      hint.textContent = 'Camera denied. Tap to retry.';
+      hint.textContent = 'Camera error. Kripya app settings me camera allow karein.';
+      console.error(err);
     });
 }
+
 
 function closeCamera() {
   const overlay = document.getElementById('cameraOverlay');
