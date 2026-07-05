@@ -13,6 +13,14 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Ensure Splash Screen Exists (Fallback)
+        run: |
+          if [ ! -f splashscreen.png ]; then
+            echo "splashscreen.png not found! Creating a fallback."
+            sudo apt-get update && sudo apt-get install -y imagemagick
+            convert -size 1024x1024 xc:"#0a0a0a" splashscreen.png
+          fi
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
@@ -36,16 +44,16 @@ jobs:
       - name: Setup Files & Configuration
         run: |
           cd payapp
-          # Default files delete karke tumhari repository ki files copy karna
+          
           rm -rf www/*
           rsync -av --exclude='payapp' --exclude='.git' --exclude='.github' ../ www/
 
-          # Error fix: Changed '&' to 'and' and moved edit-config inside platform tag
+          # Config XML - Mic aur Media plugins hata diye gaye hain, sirf Camera bacha hai
           cat << 'EOF' > config.xml
           <?xml version='1.0' encoding='utf-8'?>
           <widget id="com.akash.payapp" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
               <name>PayApp</name>
-              <description>UPI Clone App with Camera and Audio</description>
+              <description>UPI Clone App</description>
               <author>Akash</author>
               <content src="index.html" />
               <access origin="*" />
@@ -53,31 +61,25 @@ jobs:
               <allow-intent href="http://*/*" />
               <allow-intent href="https://*/*" />
               
-              <!-- Required Plugins -->
-              <plugin name="cordova-plugin-camera" spec="^6.0.0" />
-              <plugin name="cordova-plugin-media" spec="^7.0.0" />
-              <plugin name="cordova-plugin-splashscreen" spec="^6.0.0" />
+              <!-- Sirf Android Permissions Plugin rakha hai -->
               <plugin name="cordova-plugin-android-permissions" spec="^1.1.5" />
 
-              <!-- Splash Screen Settings -->
+              <!-- Built-in Splash Screen Settings -->
               <preference name="SplashScreenDelay" value="1300" />
               <preference name="FadeSplashScreenDuration" value="300"/>
               <preference name="ShowSplashScreenSpinner" value="false" />
+              <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/drawable/splashscreen.png" />
+              <preference name="AndroidWindowSplashScreenBackground" value="#0a0a0a" />
 
               <platform name="android">
-                  <!-- Android Manifest Permissions -->
-                  <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest">
+                  <!-- SIRF CAMERA PERMISSION INJECT KI GAYI HAI -->
+                  <config-file target="AndroidManifest.xml" parent="/*">
                       <uses-permission android:name="android.permission.CAMERA" />
-                      <uses-permission android:name="android.permission.RECORD_AUDIO" />
-                      <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
                       <uses-feature android:name="android.hardware.camera" />
                       <uses-feature android:name="android.hardware.camera.autofocus" />
-                  </edit-config>
+                  </config-file>
                   
-                  <!-- Splash screen image configuration -->
                   <resource-file src="www/splashscreen.png" target="app/src/main/res/drawable/splashscreen.png" />
-                  <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/drawable/splashscreen.png" />
-                  <preference name="AndroidWindowSplashScreenBackground" value="#0a0a0a" />
               </platform>
           </widget>
           EOF
