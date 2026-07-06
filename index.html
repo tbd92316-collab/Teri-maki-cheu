@@ -964,6 +964,7 @@
             font-weight: 800;
             color: #fff;
             margin-top: 14px;
+            text-align: center;
         }
         .amt-sub {
             font-size: 15px;
@@ -1339,9 +1340,9 @@
                     </svg>
                 </div>
                 <div class="amt-name" id="amtName">AMAYA KUMAR PADHI</div>
-                <div class="amt-sub">
+                <div class="amt-sub" id="amtUpi">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
-                    FamX Wallet
+                    <span id="upiIdDisplay">9438536112@ucobank</span>
                 </div>
             </div>
             <div class="amt-bubble-wrap">
@@ -1385,8 +1386,8 @@
                 </div>
             </div>
             <div class="succ-amount" id="succAmount">&#8377;10</div>
-            <div class="succ-to">to AMAYA KUMAR PADHI</div>
-            <div class="succ-upi">9438536112@ucobank</div>
+            <div class="succ-to" id="succTo">to AMAYA KUMAR PADHI</div>
+            <div class="succ-upi" id="succUpi">9438536112@ucobank</div>
             <div class="succ-check-wrap">
                 <div class="succ-check">
                     <svg viewBox="0 0 24 24" fill="none" stroke="#08321f" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4,13 9.5,18.5 20,6"/></svg>
@@ -1421,16 +1422,125 @@
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js">
     </script>
     <script>
+        // ── UPI parsing (from the first scanner app) ──
+        function parseUPIData(raw) {
+            if (!raw) return null;
+            let url = raw.trim();
+            const upiMatch = url.match(/(upi:\/\/[^\s]+)/i);
+            if (upiMatch) {
+                url = upiMatch[1];
+            }
+            if (!url.toLowerCase().startsWith('upi://')) {
+                const simpleUpiMatch = url.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+)/);
+                if (simpleUpiMatch) {
+                    return {
+                        type: 'simple',
+                        upiId: simpleUpiMatch[1],
+                        name: null,
+                        amount: null,
+                        currency: null,
+                        tn: null,
+                        raw: raw
+                    };
+                }
+                return null;
+            }
+            try {
+                const urlObj = new URL(url);
+                const params = new URLSearchParams(urlObj.search);
+                const pa = params.get('pa') || '';
+                const pn = params.get('pn') || '';
+                const am = params.get('am') || '';
+                const cu = params.get('cu') || 'INR';
+                const tn = params.get('tn') || '';
+                let upiId = pa;
+                if (!upiId) {
+                    const pathParts = urlObj.pathname.split('/');
+                    if (pathParts.length > 1) {
+                        const last = pathParts[pathParts.length - 1];
+                        if (last.includes('@')) upiId = last;
+                    }
+                }
+                if (!upiId && !pn) {
+                    const simpleMatch = raw.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+)/);
+                    if (simpleMatch) {
+                        return {
+                            type: 'simple',
+                            upiId: simpleMatch[1],
+                            name: pn || null,
+                            amount: am || null,
+                            currency: cu || null,
+                            tn: tn || null,
+                            raw: raw
+                        };
+                    }
+                    return null;
+                }
+                return {
+                    type: 'upi',
+                    upiId: upiId || 'N/A',
+                    name: pn || 'Unnamed',
+                    amount: am || null,
+                    currency: cu || 'INR',
+                    tn: tn || null,
+                    mc: null,
+                    tid: null,
+                    mid: null,
+                    raw: raw
+                };
+            } catch (e) {
+                const paMatch = raw.match(/[?&]pa=([^&]+)/i);
+                const pnMatch = raw.match(/[?&]pn=([^&]+)/i);
+                const amMatch = raw.match(/[?&]am=([^&]+)/i);
+                const cuMatch = raw.match(/[?&]cu=([^&]+)/i);
+                const tnMatch = raw.match(/[?&]tn=([^&]+)/i);
+                if (paMatch) {
+                    return {
+                        type: 'upi',
+                        upiId: decodeURIComponent(paMatch[1]),
+                        name: pnMatch ? decodeURIComponent(pnMatch[1]) : 'Unnamed',
+                        amount: amMatch ? decodeURIComponent(amMatch[1]) : null,
+                        currency: cuMatch ? decodeURIComponent(cuMatch[1]) : 'INR',
+                        tn: tnMatch ? decodeURIComponent(tnMatch[1]) : null,
+                        mc: null,
+                        tid: null,
+                        mid: null,
+                        raw: raw
+                    };
+                }
+                const atMatch = raw.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+)/);
+                if (atMatch) {
+                    return {
+                        type: 'simple',
+                        upiId: atMatch[1],
+                        name: null,
+                        amount: null,
+                        currency: null,
+                        tn: null,
+                        raw: raw
+                    };
+                }
+                return null;
+            }
+        }
+
+        // ── Global variables for scanned data ──
+        let scannedName = '';
+        let scannedUpi = '';
+
+        // ── Camera & scanning state ──
         let camStream = null;
         let scanLoopId = null;
         let flashMode = 'auto';
         let torchOn = false;
         let torchSupported = false;
         let frameCount = 0;
+        let isScanning = true; // true while camera is active and looking for QR
 
         const DARK_THRESHOLD = 70;
         const BRIGHT_THRESHOLD = 95;
 
+        // ── Camera functions ──
         function openCamera() {
             const overlay = document.getElementById('cameraOverlay');
             const video = document.getElementById('camVideo');
@@ -1444,6 +1554,7 @@
             torchOn = false;
             torchSupported = false;
             updateFlashUI();
+            isScanning = true;
 
             navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
                 .then(stream => {
@@ -1467,6 +1578,8 @@
             overlay.classList.remove('open');
             setTorch(false);
             stopCamera();
+            // Reset scanning flag
+            isScanning = false;
         }
 
         function stopCamera() {
@@ -1478,14 +1591,7 @@
             }
         }
 
-        function manualScanTrigger() {
-            document.getElementById('camStatus').textContent = 'QR detected!';
-            setTorch(false);
-            stopCamera();
-            document.getElementById('cameraOverlay').classList.remove('open');
-            openAmountScreen();
-        }
-
+        // ── Flash and torch controls ──
         function updateFlashUI() {
             const modeLabel = document.getElementById('flashModeLabel');
             const toggleBtn = document.getElementById('flashToggleBtn');
@@ -1539,13 +1645,14 @@
             }
         }
 
+        // ── Main scanning loop ──
         function scanLoop() {
             const video = document.getElementById('camVideo');
             const canvas = document.getElementById('camCanvas');
             const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
             function tick() {
-                if (!camStream) return;
+                if (!camStream || !isScanning) return;
                 if (video.readyState === video.HAVE_ENOUGH_DATA) {
                     canvas.width = video.videoWidth;
                     canvas.height = video.videoHeight;
@@ -1556,11 +1663,8 @@
                         if (frameCount % 15 === 0) checkAutoBrightness(imageData);
                         const code = jsQR(imageData.data, imageData.width, imageData.height);
                         if (code) {
-                            document.getElementById('camStatus').textContent = 'QR detected!';
-                            setTorch(false);
-                            stopCamera();
-                            document.getElementById('cameraOverlay').classList.remove('open');
-                            openAmountScreen();
+                            // Found a QR code – handle it
+                            handleQRCode(code.data);
                             return;
                         }
                     } catch (e) { /* ignore */ }
@@ -1570,10 +1674,50 @@
             scanLoopId = requestAnimationFrame(tick);
         }
 
-        /* ── Amount entry ── */
+        // ── Handle scanned QR data ──
+        function handleQRCode(rawData) {
+            if (!isScanning) return;
+            // Prevent multiple triggers
+            isScanning = false;
+
+            const parsed = parseUPIData(rawData);
+            if (parsed && parsed.upiId) {
+                scannedUpi = parsed.upiId;
+                scannedName = parsed.name || parsed.upiId; // fallback to UPI ID if no name
+                // Show success on camera overlay
+                document.getElementById('camStatus').textContent = 'QR detected!';
+                // Stop camera and close overlay
+                setTorch(false);
+                stopCamera();
+                document.getElementById('cameraOverlay').classList.remove('open');
+                // Open amount screen with the scanned details
+                openAmountScreen();
+            } else {
+                // Not a valid UPI QR
+                document.getElementById('camHint').textContent = 'Not a UPI QR. Try again.';
+                // Resume scanning after a short delay
+                setTimeout(() => {
+                    isScanning = true;
+                    document.getElementById('camHint').textContent = 'Point at a UPI QR code';
+                    scanLoop(); // restart the loop
+                }, 2000);
+            }
+        }
+
+        // ── Manual trigger (for fallback) ──
+        function manualScanTrigger() {
+            // This is called when user taps the scan frame – we can simulate a scan or just ignore.
+            // We'll keep it as a hint.
+        }
+
+        // ── Amount screen ──
         let amountValue = '';
 
         function openAmountScreen() {
+            // Populate with scanned data
+            document.getElementById('amtName').textContent = scannedName || 'Unknown';
+            document.getElementById('upiIdDisplay').textContent = scannedUpi || 'No UPI ID';
+            // Reset amount
             amountValue = '';
             updateAmountDisplay();
             document.getElementById('amountScreen').classList.add('open');
@@ -1619,6 +1763,7 @@
             }, 2000);
         }
 
+        // ── Success screen ──
         function formatTxnId() {
             let id = 'FMPIB';
             for (let i = 0; i < 10; i++) id += Math.floor(Math.random() * 10);
@@ -1643,6 +1788,9 @@
             if (amount && amount !== '' && amount !== '.') {
                 document.getElementById('succAmount').innerHTML = '&#8377;' + amount;
             }
+            // Update with scanned data
+            document.getElementById('succTo').textContent = 'to ' + (scannedName || 'Unknown');
+            document.getElementById('succUpi').textContent = scannedUpi || 'No UPI ID';
             document.getElementById('successScreen').classList.add('open');
             window.scrollTo({ top: 0, behavior: 'auto' });
             const sound = document.getElementById('paymentSound');
@@ -1652,7 +1800,20 @@
 
         function closeSuccess() {
             document.getElementById('successScreen').classList.remove('open');
+            // Optionally reset scanned data? We'll keep it.
         }
+
+        // ── Expose to HTML onclick ──
+        window.openCamera = openCamera;
+        window.closeCamera = closeCamera;
+        window.toggleFlashMode = toggleFlashMode;
+        window.toggleTorchManual = toggleTorchManual;
+        window.manualScanTrigger = manualScanTrigger;
+        window.closeAmountScreen = closeAmountScreen;
+        window.pressKey = pressKey;
+        window.pressBackspace = pressBackspace;
+        window.payNow = payNow;
+        window.closeSuccess = closeSuccess;
     </script>
 
 </body>
