@@ -13,11 +13,16 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Ensure Splash Screen Exists (Fallback)
+      - name: Ensure Files Exist (Fallback)
         run: |
+          # Agar repository me logo.png ya splashscreen nahi hai toh automatic dark image generate ho jayegi taaki build fail na ho
+          sudo apt-get update && sudo apt-get install -y imagemagick
+          if [ ! -f logo.png ]; then
+            echo "logo.png not found! Creating a fallback icon."
+            convert -size 512x512 xc:"#7850dc" -gravity center -fill white -pointsize 40 -draw "text 0,0 'PayApp'" logo.png
+          fi
           if [ ! -f splashscreen.png ]; then
-            echo "splashscreen.png not found! Creating a fallback."
-            sudo apt-get update && sudo apt-get install -y imagemagick
+            echo "splashscreen.png not found! Creating a fallback splash."
             convert -size 1024x1024 xc:"#0a0a0a" splashscreen.png
           fi
 
@@ -45,15 +50,16 @@ jobs:
         run: |
           cd payapp
           
+          # Delete default cordova files and copy yours
           rm -rf www/*
           rsync -av --exclude='payapp' --exclude='.git' --exclude='.github' ../ www/
 
-          # Config XML - Mic aur Media plugins hata diye gaye hain, sirf Camera bacha hai
+          # Config XML with Icon and Splash configuration using logo.png and splashscreen.png
           cat << 'EOF' > config.xml
           <?xml version='1.0' encoding='utf-8'?>
           <widget id="com.akash.payapp" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
               <name>PayApp</name>
-              <description>UPI Clone App</description>
+              <description>UPI Clone App with Camera Integration</description>
               <author>Akash</author>
               <content src="index.html" />
               <access origin="*" />
@@ -61,10 +67,10 @@ jobs:
               <allow-intent href="http://*/*" />
               <allow-intent href="https://*/*" />
               
-              <!-- Sirf Android Permissions Plugin rakha hai -->
               <plugin name="cordova-plugin-android-permissions" spec="^1.1.5" />
 
-              <!-- Built-in Splash Screen Settings -->
+              <icon src="www/logo.png" />
+
               <preference name="SplashScreenDelay" value="1300" />
               <preference name="FadeSplashScreenDuration" value="300"/>
               <preference name="ShowSplashScreenSpinner" value="false" />
@@ -72,7 +78,6 @@ jobs:
               <preference name="AndroidWindowSplashScreenBackground" value="#0a0a0a" />
 
               <platform name="android">
-                  <!-- SIRF CAMERA PERMISSION INJECT KI GAYI HAI -->
                   <config-file target="AndroidManifest.xml" parent="/*">
                       <uses-permission android:name="android.permission.CAMERA" />
                       <uses-feature android:name="android.hardware.camera" />
