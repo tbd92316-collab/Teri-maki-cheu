@@ -17,7 +17,7 @@
 
   .phone {
     width: 390px;
-    min-height: 844px;
+    height: 844px;
     background:
       radial-gradient(circle at 50% 0%, rgba(120,80,220,0.5), transparent 40%),
       linear-gradient(180deg, #1b1049 0%, #120a33 16%, #08051c 32%, #050308 46%, #000000 60%);
@@ -26,8 +26,18 @@
     position: relative;
     box-shadow: 0 0 0 8px #000, 0 30px 80px rgba(0,0,0,0.7);
     color: #fff;
-    padding-bottom: 78px; /* space for fixed bottom nav */
   }
+
+  /* Screen 1: the main home screen — a self-contained scrollable layer */
+  .screen-main {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    z-index: 1;
+    padding-bottom: 90px; /* keep content clear of the fixed bottom nav */
+  }
+  .screen-main::-webkit-scrollbar { display: none; }
 
   .stripes {
     position: absolute;
@@ -667,6 +677,7 @@
     display: none;
     flex-direction: column;
     padding: 20px 20px 24px;
+    overflow-y: auto;
   }
   .amount-screen.open { display: flex; }
   .amt-back {
@@ -818,6 +829,7 @@
 <div class="phone">
   <div class="stripes"></div>
 
+  <div class="screen-main" id="mainScreen">
   <div class="toprow">
     <div class="avatar">
       <img src="pp.png" alt="profile"
@@ -843,7 +855,7 @@
 
       <!-- Camera layer confined to this box only -->
       <div class="qr-camera-layer" id="cameraOverlay">
-        <video id="camVideo" autoplay playsinline muted></video>
+        <video id="camVideo" autoplay playsinline muted onclick="event.stopPropagation(); manualScanTrigger();"></video>
         <div class="cam-topbar">
           <div class="cam-close" onclick="event.stopPropagation(); closeCamera();">
             <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg>
@@ -851,7 +863,7 @@
           <div class="cam-title" id="camStatus">Scan QR</div>
           <div style="width:30px;"></div>
         </div>
-        <div class="scan-frame-wrap">
+        <div class="scan-frame-wrap" onclick="event.stopPropagation(); manualScanTrigger();">
           <div class="scan-frame">
             <div class="corner tl"></div>
             <div class="corner tr"></div>
@@ -1016,6 +1028,7 @@
       Keeper
     </div>
   </div>
+  </div> <!-- /screen-main -->
 
   <!-- Amount entry screen -->
   <div class="amount-screen" id="amountScreen">
@@ -1122,74 +1135,34 @@
 </div>
 
 <audio id="paymentSound" src="payment.mp3" preload="auto"></audio>
-<script src="cordova.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 <script>
-
-
 let camStream = null;
 let scanLoopId = null;
 
-// Is naye function ko purane openCamera ki jagah replace kar do
 function openCamera() {
   const overlay = document.getElementById('cameraOverlay');
-  const hint = document.getElementById('camHint');
-  const status = document.getElementById('camStatus');
-  
-  overlay.classList.add('open');
-  hint.textContent = 'Camera start ho raha hai...';
-  status.textContent = 'Scan QR';
-
-  // Check karna ki app Android device (Cordova) me chal rahi hai ya nahi
-  if (window.cordova && cordova.plugins && cordova.plugins.permissions) {
-    var permissions = cordova.plugins.permissions;
-    
-    // Pehle check karo ki camera permission already mili hui hai ya nahi
-    permissions.checkPermission(permissions.CAMERA, function(statusObj) {
-      if (statusObj.hasPermission) {
-        startCameraStream(); // Permission hai, direct camera on karo
-      } else {
-        // Permission nahi hai, toh Screen par "Allow" ka popup dikhao
-        permissions.requestPermission(permissions.CAMERA, function(reqStatus) {
-          if (reqStatus.hasPermission) {
-            startCameraStream();
-          } else {
-            hint.textContent = 'Camera permission deny kar di gayi. Settings me jake allow karein.';
-          }
-        }, function() {
-          hint.textContent = 'Permission error.';
-        });
-      }
-    });
-  } else {
-    // Agar mobile browser me normally test kar rahe ho
-    startCameraStream();
-  }
-}
-
-// Ye function camera stream ko us box me set karega
-function startCameraStream() {
   const video = document.getElementById('camVideo');
   const hint = document.getElementById('camHint');
-  
+  const status = document.getElementById('camStatus');
+  overlay.classList.add('open');
+  hint.textContent = 'Point at a QR code';
+  status.textContent = 'Scan QR';
+
   navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
     .then(stream => {
       camStream = stream;
       video.srcObject = stream;
-      video.setAttribute('playsinline', true); // WebView ke liye zaroori hai
       video.onloadedmetadata = () => {
         video.play();
-        hint.textContent = 'Point at a QR code';
-        scanLoop(); // Scanning ka loop chalu kar do
+        scanLoop();
       };
     })
     .catch(err => {
-      hint.textContent = 'Camera error. Kripya app settings me camera allow karein.';
-      console.error(err);
+      hint.textContent = 'Camera denied. Tap to retry.';
     });
 }
-
 
 function closeCamera() {
   const overlay = document.getElementById('cameraOverlay');
@@ -1204,6 +1177,13 @@ function stopCamera() {
     camStream.getTracks().forEach(t => t.stop());
     camStream = null;
   }
+}
+
+function manualScanTrigger() {
+  document.getElementById('camStatus').textContent = 'QR detected!';
+  stopCamera();
+  document.getElementById('cameraOverlay').classList.remove('open');
+  openAmountScreen();
 }
 
 function scanLoop() {
@@ -1241,6 +1221,7 @@ function openAmountScreen() {
   amountValue = '';
   updateAmountDisplay();
   document.getElementById('amountScreen').classList.add('open');
+  window.scrollTo({ top: 0, behavior: 'auto' });
 }
 
 function closeAmountScreen() {
@@ -1308,6 +1289,7 @@ function showSuccessScreen(amount) {
   }
 
   document.getElementById('successScreen').classList.add('open');
+  window.scrollTo({ top: 0, behavior: 'auto' });
 
   const sound = document.getElementById('paymentSound');
   sound.currentTime = 0;
