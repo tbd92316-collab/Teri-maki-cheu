@@ -775,6 +775,145 @@
             z-index: 2;
         }
 
+        /* ── AUTH (Pattern Lock) Screen ── */
+        .auth-screen {
+            position: absolute;
+            inset: 0;
+            background: #0a0a0a;
+            z-index: 56;
+            display: none;
+            flex-direction: column;
+            padding: 30px 20px;
+            align-items: center;
+            justify-content: center;
+        }
+        .auth-screen.open {
+            display: flex;
+        }
+        .auth-header {
+            font-size: 22px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+        .auth-sub {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.45);
+            margin-bottom: 30px;
+        }
+        .auth-error {
+            font-size: 14px;
+            color: #ff6b6b;
+            min-height: 24px;
+            margin-bottom: 12px;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        }
+        .auth-grid-wrap {
+            position: relative;
+            width: 260px;
+            height: 260px;
+            margin: 0 auto;
+        }
+        .auth-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            width: 100%;
+            height: 100%;
+            position: relative;
+            z-index: 2;
+        }
+        .auth-dot {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+        }
+        .auth-dot .circle {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.06);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .auth-dot .circle .inner {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: transparent;
+            transition: all 0.15s ease;
+            transform: scale(0);
+        }
+        .auth-dot.selected .circle {
+            border-color: #ffd400;
+            background: rgba(255, 212, 0, 0.12);
+        }
+        .auth-dot.selected .circle .inner {
+            background: #ffd400;
+            transform: scale(1);
+        }
+        .auth-dot.error-flash .circle {
+            border-color: #ff4444;
+            background: rgba(255, 68, 68, 0.15);
+        }
+        .auth-dot.error-flash .circle .inner {
+            background: #ff4444;
+        }
+        .auth-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+        .auth-back {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.05);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .auth-back svg {
+            width: 22px;
+            height: 22px;
+        }
+        .auth-reset-btn {
+            margin-top: 30px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.5);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .auth-reset-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
         /* ── Success screen ── */
         .success-screen {
             position: absolute;
@@ -1372,6 +1511,23 @@
             </div>
         </div>
 
+        <!-- ─── AUTH (Pattern Lock) SCREEN ─── -->
+        <div class="auth-screen" id="authScreen">
+            <div class="auth-back" onclick="closeAuthScreen()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12,19 5,12 12,5"/></svg>
+            </div>
+            <div class="auth-header">🔒 Enter Pattern</div>
+            <div class="auth-sub">Draw your pattern to confirm payment</div>
+            <div class="auth-error" id="authError"></div>
+            <div class="auth-grid-wrap">
+                <canvas class="auth-canvas" id="authCanvas"></canvas>
+                <div class="auth-grid" id="authGrid">
+                    <!-- 9 dots will be generated by JS -->
+                </div>
+            </div>
+            <div class="auth-reset-btn" onclick="resetPattern()">↺ Reset</div>
+        </div>
+
         <!-- Success screen -->
         <div class="success-screen" id="successScreen">
             <div class="succ-topbar">
@@ -1422,15 +1578,14 @@
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js">
     </script>
     <script>
-        // ── UPI parsing (from the first scanner app) ──
+        // ── Enhanced UPI parsing (handles merchant accounts) ──
         function parseUPIData(raw) {
             if (!raw) return null;
             let url = raw.trim();
             const upiMatch = url.match(/(upi:\/\/[^\s]+)/i);
             if (upiMatch) {
                 url = upiMatch[1];
-            }
-            if (!url.toLowerCase().startsWith('upi://')) {
+            } else {
                 const simpleUpiMatch = url.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+)/);
                 if (simpleUpiMatch) {
                     return {
@@ -1448,8 +1603,15 @@
             try {
                 const urlObj = new URL(url);
                 const params = new URLSearchParams(urlObj.search);
-                const pa = params.get('pa') || '';
-                const pn = params.get('pn') || '';
+                let pa = params.get('pa') || '';
+                let name = params.get('pn') ||
+                    params.get('mn') ||
+                    params.get('mname') ||
+                    params.get('merchant-name') ||
+                    params.get('merchant_name') ||
+                    params.get('merchant') ||
+                    params.get('name') ||
+                    '';
                 const am = params.get('am') || '';
                 const cu = params.get('cu') || 'INR';
                 const tn = params.get('tn') || '';
@@ -1460,14 +1622,18 @@
                         const last = pathParts[pathParts.length - 1];
                         if (last.includes('@')) upiId = last;
                     }
+                    if (!upiId) {
+                        const idMatch = url.match(/[?&]pa=([^&]+)/i);
+                        if (idMatch) upiId = decodeURIComponent(idMatch[1]);
+                    }
                 }
-                if (!upiId && !pn) {
+                if (!upiId && !name) {
                     const simpleMatch = raw.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+)/);
                     if (simpleMatch) {
                         return {
                             type: 'simple',
                             upiId: simpleMatch[1],
-                            name: pn || null,
+                            name: name || null,
                             amount: am || null,
                             currency: cu || null,
                             tn: tn || null,
@@ -1476,10 +1642,11 @@
                     }
                     return null;
                 }
+                if (!name) name = upiId || 'Unknown';
                 return {
                     type: 'upi',
                     upiId: upiId || 'N/A',
-                    name: pn || 'Unnamed',
+                    name: name,
                     amount: am || null,
                     currency: cu || 'INR',
                     tn: tn || null,
@@ -1491,14 +1658,20 @@
             } catch (e) {
                 const paMatch = raw.match(/[?&]pa=([^&]+)/i);
                 const pnMatch = raw.match(/[?&]pn=([^&]+)/i);
+                const mnMatch = raw.match(/[?&]mn=([^&]+)/i) || raw.match(/[?&]mname=([^&]+)/i);
+                const merchantMatch = raw.match(/[?&](?:merchant-name|merchant_name|merchant)=([^&]+)/i);
                 const amMatch = raw.match(/[?&]am=([^&]+)/i);
                 const cuMatch = raw.match(/[?&]cu=([^&]+)/i);
                 const tnMatch = raw.match(/[?&]tn=([^&]+)/i);
                 if (paMatch) {
+                    let name = pnMatch ? decodeURIComponent(pnMatch[1]) : '';
+                    if (!name && mnMatch) name = decodeURIComponent(mnMatch[1]);
+                    if (!name && merchantMatch) name = decodeURIComponent(merchantMatch[1]);
+                    if (!name) name = decodeURIComponent(paMatch[1]) || 'Unknown';
                     return {
                         type: 'upi',
                         upiId: decodeURIComponent(paMatch[1]),
-                        name: pnMatch ? decodeURIComponent(pnMatch[1]) : 'Unnamed',
+                        name: name,
                         amount: amMatch ? decodeURIComponent(amMatch[1]) : null,
                         currency: cuMatch ? decodeURIComponent(cuMatch[1]) : 'INR',
                         tn: tnMatch ? decodeURIComponent(tnMatch[1]) : null,
@@ -1524,9 +1697,11 @@
             }
         }
 
-        // ── Global variables for scanned data ──
+        // ── Global variables ──
         let scannedName = '';
         let scannedUpi = '';
+        let amountValue = ''; // used in amount screen
+        let pendingAmount = ''; // store amount for success after auth
 
         // ── Camera & scanning state ──
         let camStream = null;
@@ -1535,10 +1710,14 @@
         let torchOn = false;
         let torchSupported = false;
         let frameCount = 0;
-        let isScanning = true; // true while camera is active and looking for QR
-
+        let isScanning = true;
         const DARK_THRESHOLD = 70;
         const BRIGHT_THRESHOLD = 95;
+
+        // ── Pattern lock state ──
+        let selectedIndices = [];
+        const correctPattern = [3, 7, 6, 4]; // 4,8,7,5 (0-indexed)
+        let patternLocked = false;
 
         // ── Camera functions ──
         function openCamera() {
@@ -1578,7 +1757,6 @@
             overlay.classList.remove('open');
             setTorch(false);
             stopCamera();
-            // Reset scanning flag
             isScanning = false;
         }
 
@@ -1663,7 +1841,6 @@
                         if (frameCount % 15 === 0) checkAutoBrightness(imageData);
                         const code = jsQR(imageData.data, imageData.width, imageData.height);
                         if (code) {
-                            // Found a QR code – handle it
                             handleQRCode(code.data);
                             return;
                         }
@@ -1677,47 +1854,32 @@
         // ── Handle scanned QR data ──
         function handleQRCode(rawData) {
             if (!isScanning) return;
-            // Prevent multiple triggers
             isScanning = false;
-
             const parsed = parseUPIData(rawData);
             if (parsed && parsed.upiId) {
                 scannedUpi = parsed.upiId;
-                scannedName = parsed.name || parsed.upiId; // fallback to UPI ID if no name
-                // Show success on camera overlay
+                scannedName = parsed.name || parsed.upiId;
                 document.getElementById('camStatus').textContent = 'QR detected!';
-                // Stop camera and close overlay
                 setTorch(false);
                 stopCamera();
                 document.getElementById('cameraOverlay').classList.remove('open');
-                // Open amount screen with the scanned details
                 openAmountScreen();
             } else {
-                // Not a valid UPI QR
                 document.getElementById('camHint').textContent = 'Not a UPI QR. Try again.';
-                // Resume scanning after a short delay
                 setTimeout(() => {
                     isScanning = true;
                     document.getElementById('camHint').textContent = 'Point at a UPI QR code';
-                    scanLoop(); // restart the loop
+                    scanLoop();
                 }, 2000);
             }
         }
 
-        // ── Manual trigger (for fallback) ──
-        function manualScanTrigger() {
-            // This is called when user taps the scan frame – we can simulate a scan or just ignore.
-            // We'll keep it as a hint.
-        }
+        function manualScanTrigger() {}
 
         // ── Amount screen ──
-        let amountValue = '';
-
         function openAmountScreen() {
-            // Populate with scanned data
             document.getElementById('amtName').textContent = scannedName || 'Unknown';
             document.getElementById('upiIdDisplay').textContent = scannedUpi || 'No UPI ID';
-            // Reset amount
             amountValue = '';
             updateAmountDisplay();
             document.getElementById('amountScreen').classList.add('open');
@@ -1753,14 +1915,134 @@
         function payNow() {
             const btn = document.getElementById('payNowBtn');
             if (btn.classList.contains('disabled')) return;
-            const paidAmount = amountValue;
-            btn.classList.add('disabled');
-            btn.textContent = 'Processing...';
-            setTimeout(() => {
-                closeAmountScreen();
-                btn.textContent = 'Pay now';
-                showSuccessScreen(paidAmount);
-            }, 2000);
+            pendingAmount = amountValue;
+            closeAmountScreen();
+            openAuthScreen();
+        }
+
+        // ── Authentication (Pattern Lock) Screen ──
+        function openAuthScreen() {
+            document.getElementById('authScreen').classList.add('open');
+            resetPattern();
+            document.getElementById('authError').textContent = '';
+            // Redraw canvas after layout
+            setTimeout(() => drawPattern(), 50);
+        }
+
+        function closeAuthScreen() {
+            document.getElementById('authScreen').classList.remove('open');
+            // Go back to amount screen
+            openAmountScreen();
+        }
+
+        function initPatternGrid() {
+            const grid = document.getElementById('authGrid');
+            grid.innerHTML = '';
+            for (let i = 0; i < 9; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'auth-dot';
+                dot.dataset.index = i;
+                dot.innerHTML = `<div class="circle"><div class="inner"></div></div>`;
+                dot.addEventListener('click', () => onDotClick(i));
+                grid.appendChild(dot);
+            }
+            // Setup canvas
+            const canvas = document.getElementById('authCanvas');
+            const wrap = canvas.parentElement;
+            canvas.width = wrap.offsetWidth || 260;
+            canvas.height = wrap.offsetHeight || 260;
+        }
+
+        function getDotCenter(index) {
+            const grid = document.getElementById('authGrid');
+            const dots = grid.querySelectorAll('.auth-dot');
+            const rect = grid.getBoundingClientRect();
+            const dotRect = dots[index].getBoundingClientRect();
+            return {
+                x: dotRect.left - rect.left + dotRect.width / 2,
+                y: dotRect.top - rect.top + dotRect.height / 2
+            };
+        }
+
+        function drawPattern() {
+            const canvas = document.getElementById('authCanvas');
+            const ctx = canvas.getContext('2d');
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (selectedIndices.length < 2) return;
+
+            ctx.beginPath();
+            ctx.strokeStyle = '#ffd400';
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            const first = getDotCenter(selectedIndices[0]);
+            ctx.moveTo(first.x, first.y);
+            for (let i = 1; i < selectedIndices.length; i++) {
+                const pt = getDotCenter(selectedIndices[i]);
+                ctx.lineTo(pt.x, pt.y);
+            }
+            ctx.stroke();
+
+            // Draw dots on top (they are already styled via CSS)
+        }
+
+        function onDotClick(index) {
+            if (patternLocked) return;
+            if (selectedIndices.includes(index)) return;
+            if (selectedIndices.length >= 4) return;
+
+            selectedIndices.push(index);
+            // Update UI
+            const dots = document.querySelectorAll('.auth-dot');
+            dots.forEach((dot, i) => {
+                dot.classList.toggle('selected', selectedIndices.includes(i));
+            });
+            drawPattern();
+
+            // Check if we have 4 dots
+            if (selectedIndices.length === 4) {
+                patternLocked = true;
+                const isCorrect = arraysEqual(selectedIndices, correctPattern);
+                if (isCorrect) {
+                    document.getElementById('authError').textContent = '✅ Pattern correct!';
+                    setTimeout(() => {
+                        closeAuthScreen();
+                        showSuccessScreen(pendingAmount);
+                    }, 400);
+                } else {
+                    document.getElementById('authError').textContent = '❌ Wrong pattern. Try again.';
+                    // Flash red on dots
+                    dots.forEach(dot => dot.classList.add('error-flash'));
+                    setTimeout(() => {
+                        dots.forEach(dot => dot.classList.remove('error-flash'));
+                        resetPattern();
+                    }, 700);
+                }
+            }
+        }
+
+        function resetPattern() {
+            selectedIndices = [];
+            patternLocked = false;
+            document.getElementById('authError').textContent = '';
+            const dots = document.querySelectorAll('.auth-dot');
+            dots.forEach(dot => {
+                dot.classList.remove('selected', 'error-flash');
+            });
+            drawPattern();
+        }
+
+        function arraysEqual(a, b) {
+            if (a.length !== b.length) return false;
+            for (let i = 0; i < a.length; i++) {
+                if (a[i] !== b[i]) return false;
+            }
+            return true;
         }
 
         // ── Success screen ──
@@ -1788,7 +2070,6 @@
             if (amount && amount !== '' && amount !== '.') {
                 document.getElementById('succAmount').innerHTML = '&#8377;' + amount;
             }
-            // Update with scanned data
             document.getElementById('succTo').textContent = 'to ' + (scannedName || 'Unknown');
             document.getElementById('succUpi').textContent = scannedUpi || 'No UPI ID';
             document.getElementById('successScreen').classList.add('open');
@@ -1800,8 +2081,18 @@
 
         function closeSuccess() {
             document.getElementById('successScreen').classList.remove('open');
-            // Optionally reset scanned data? We'll keep it.
         }
+
+        // ── Init pattern grid ──
+        window.addEventListener('load', () => {
+            initPatternGrid();
+            // Adjust canvas on resize/orientation
+            window.addEventListener('resize', () => {
+                if (document.getElementById('authScreen').classList.contains('open')) {
+                    drawPattern();
+                }
+            });
+        });
 
         // ── Expose to HTML onclick ──
         window.openCamera = openCamera;
@@ -1814,6 +2105,8 @@
         window.pressBackspace = pressBackspace;
         window.payNow = payNow;
         window.closeSuccess = closeSuccess;
+        window.closeAuthScreen = closeAuthScreen;
+        window.resetPattern = resetPattern;
     </script>
 
 </body>
