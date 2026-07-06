@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Pay App UI Clone</title>
     <style>
+        /* ====== same base styles as before ====== */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -19,39 +20,29 @@
             justify-content: center;
             padding: 30px 0;
         }
-
-        /* ── phone shell ── */
         .phone {
             width: 390px;
             height: 844px;
-            background:
-                radial-gradient(circle at 50% 0%, rgba(120, 80, 220, 0.5), transparent 40%),
+            background: radial-gradient(circle at 50% 0%, rgba(120, 80, 220, 0.5), transparent 40%),
                 linear-gradient(180deg, #1b1049 0%, #120a33 16%, #08051c 32%, #050308 46%, #000000 60%);
             border-radius: 40px;
             overflow: hidden;
             position: relative;
             box-shadow: 0 0 0 8px #000, 0 30px 80px rgba(0, 0, 0, 0.7);
             color: #fff;
-
-            /* FLEX LAYOUT — bottomnav stays at bottom, content scrolls above */
             display: flex;
             flex-direction: column;
         }
-
-        /* ── scrollable content area ── */
         .screen-main {
             flex: 1;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
-            padding-bottom: 0;
-            /* bottom space is handled by flex + bottomnav */
             position: relative;
             z-index: 1;
         }
         .screen-main::-webkit-scrollbar {
             display: none;
         }
-
         .stripes {
             position: absolute;
             top: 0;
@@ -62,7 +53,6 @@
             pointer-events: none;
             z-index: 0;
         }
-
         /* top row */
         .toprow {
             display: flex;
@@ -95,7 +85,6 @@
             width: 60%;
             opacity: 0.5;
         }
-
         .search {
             flex: 1;
             background: rgba(255, 255, 255, 0.13);
@@ -116,7 +105,6 @@
             opacity: 0.85;
             flex-shrink: 0;
         }
-
         .sendbtn {
             width: 54px;
             height: 54px;
@@ -164,8 +152,7 @@
             position: absolute;
             inset: 0;
             opacity: 0.5;
-            background-image:
-                linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+            background-image: linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
                 linear-gradient(180deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
             background-size: 14px 14px;
         }
@@ -195,7 +182,6 @@
             bottom: 18px;
             left: 18px;
         }
-
         .qr-text {
             position: relative;
             z-index: 2;
@@ -208,7 +194,7 @@
             letter-spacing: -1px;
         }
 
-        /* coming-soon banner — now fixed at bottom via flex */
+        /* coming-soon */
         .coming-soon-wrap {
             display: flex;
             justify-content: center;
@@ -560,7 +546,7 @@
             opacity: 0.9;
         }
 
-        /* ── BOTTOM NAV — fixed at bottom via flex ── */
+        /* bottom nav */
         .bottomnav {
             flex-shrink: 0;
             position: relative;
@@ -589,7 +575,7 @@
             height: 22px;
         }
 
-        /* ── Camera scanner layer (confined to QR box) ── */
+        /* camera layer */
         .qr-camera-layer {
             position: absolute;
             inset: 0;
@@ -775,7 +761,7 @@
             z-index: 2;
         }
 
-        /* ── AUTH (Pattern Lock) Screen ── */
+        /* Authentication (pattern) screen */
         .auth-screen {
             position: absolute;
             inset: 0;
@@ -914,7 +900,103 @@
             background: rgba(255, 255, 255, 0.1);
         }
 
-        /* ── Success screen ── */
+        /* Transaction History Screen */
+        .txn-screen {
+            position: absolute;
+            inset: 0;
+            background: #0d0d0d;
+            z-index: 57;
+            display: none;
+            flex-direction: column;
+            padding: 20px 16px 30px;
+            overflow-y: auto;
+        }
+        .txn-screen.open {
+            display: flex;
+        }
+        .txn-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            margin-bottom: 16px;
+        }
+        .txn-title {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            color: #fff;
+        }
+        .txn-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #fff;
+            font-size: 18px;
+            transition: 0.15s;
+        }
+        .txn-close:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+        .txn-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .txn-item {
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 14px;
+            padding: 14px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .txn-item-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .txn-recipient {
+            font-weight: 700;
+            font-size: 16px;
+            color: #fff;
+        }
+        .txn-amount {
+            font-weight: 700;
+            font-size: 16px;
+            color: #4ee69a;
+        }
+        .txn-upi {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        .txn-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.35);
+            margin-top: 4px;
+        }
+        .txn-status {
+            color: #4ee69a;
+            font-weight: 600;
+        }
+        .txn-empty {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 15px;
+            margin-top: 40px;
+        }
+
+        /* Success screen */
         .success-screen {
             position: absolute;
             inset: 0;
@@ -1049,7 +1131,7 @@
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
         }
 
-        /* ── Amount entry screen ── */
+        /* Amount entry screen */
         .amount-screen {
             position: absolute;
             inset: 0;
@@ -1244,7 +1326,6 @@
 
     <div class="phone">
 
-        <!-- stripes behind everything -->
         <div class="stripes"></div>
 
         <!-- ─── SCROLLABLE MAIN CONTENT ─── -->
@@ -1272,7 +1353,7 @@
                     <div class="qr-corner bl"></div>
                     <div class="qr-text">Scan<br>&amp; pay</div>
 
-                    <!-- Camera layer inside QR box -->
+                    <!-- Camera layer -->
                     <div class="qr-camera-layer" id="cameraOverlay">
                         <video id="camVideo" autoplay playsinline muted onclick="event.stopPropagation(); manualScanTrigger();"></video>
                         <div class="cam-topbar">
@@ -1305,11 +1386,11 @@
                 </div>
             </div>
 
-            <!-- coming-soon banner (now inside scrollable area, but we keep it) -->
             <div class="coming-soon-wrap">
                 <div class="coming-soon">Coming soon <span>&#8594;</span></div>
             </div>
 
+            <!-- action row 1 -->
             <div class="row grid-row">
                 <div class="action">
                     <div class="icon-circle">
@@ -1329,6 +1410,7 @@
                 </div>
             </div>
 
+            <!-- action row 2: Recharge, DigiGold, Google Play, and now TXN History -->
             <div class="row" style="margin-bottom: 4px;">
                 <div class="action">
                     <div class="icon-circle">
@@ -1348,6 +1430,13 @@
                         <svg viewBox="0 0 24 24"><path d="M3 3l14 9-14 9V3z" fill="#00c853"/></svg>
                     </div>
                     <div class="action-label">Google Play</div>
+                </div>
+                <!-- NEW: TXN History button -->
+                <div class="action" onclick="openTxnHistory()" style="cursor:pointer;">
+                    <div class="icon-circle">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#ffb020" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+                    </div>
+                    <div class="action-label">TXN</div>
                 </div>
             </div>
 
@@ -1433,13 +1522,12 @@
                 </div>
             </div>
 
-            <!-- extra spacer so content doesn't get hidden behind bottomnav -->
             <div style="height:12px;"></div>
 
         </div>
         <!-- /screen-main -->
 
-        <!-- ─── BOTTOM NAV — fixed at bottom via flex ─── -->
+        <!-- ─── BOTTOM NAV ─── -->
         <div class="bottomnav">
             <div class="navitem">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>
@@ -1463,8 +1551,9 @@
             </div>
         </div>
 
-        <!-- ─── OVERLAY SCREENS (absolute) ─── -->
-        <!-- Amount entry -->
+        <!-- ─── OVERLAY SCREENS ─── -->
+
+        <!-- Amount screen -->
         <div class="amount-screen" id="amountScreen">
             <div class="amt-back" onclick="closeAmountScreen()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12,19 5,12 12,5"/></svg>
@@ -1511,7 +1600,7 @@
             </div>
         </div>
 
-        <!-- ─── AUTH (Pattern Lock) SCREEN ─── -->
+        <!-- Authentication (Pattern) Screen -->
         <div class="auth-screen" id="authScreen">
             <div class="auth-back" onclick="closeAuthScreen()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12,19 5,12 12,5"/></svg>
@@ -1521,11 +1610,22 @@
             <div class="auth-error" id="authError"></div>
             <div class="auth-grid-wrap">
                 <canvas class="auth-canvas" id="authCanvas"></canvas>
-                <div class="auth-grid" id="authGrid">
-                    <!-- 9 dots will be generated by JS -->
-                </div>
+                <div class="auth-grid" id="authGrid"></div>
             </div>
             <div class="auth-reset-btn" onclick="resetPattern()">↺ Reset</div>
+        </div>
+
+        <!-- Transaction History Screen -->
+        <div class="txn-screen" id="txnScreen">
+            <div class="txn-header">
+                <div class="txn-title">📋 Transaction History</div>
+                <div class="txn-close" onclick="closeTxnHistory()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" width="20" height="20"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg>
+                </div>
+            </div>
+            <div class="txn-list" id="txnList">
+                <!-- transactions will be rendered here -->
+            </div>
         </div>
 
         <!-- Success screen -->
@@ -1578,7 +1678,7 @@
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js">
     </script>
     <script>
-        // ── Enhanced UPI parsing (handles merchant accounts) ──
+        // ── =================== UPI PARSING =================== ──
         function parseUPIData(raw) {
             if (!raw) return null;
             let url = raw.trim();
@@ -1588,15 +1688,8 @@
             } else {
                 const simpleUpiMatch = url.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+)/);
                 if (simpleUpiMatch) {
-                    return {
-                        type: 'simple',
-                        upiId: simpleUpiMatch[1],
-                        name: null,
-                        amount: null,
-                        currency: null,
-                        tn: null,
-                        raw: raw
-                    };
+                    return { type: 'simple', upiId: simpleUpiMatch[1], name: null, amount: null, currency: null, tn: null,
+                        raw: raw };
                 }
                 return null;
             }
@@ -1604,57 +1697,31 @@
                 const urlObj = new URL(url);
                 const params = new URLSearchParams(urlObj.search);
                 let pa = params.get('pa') || '';
-                let name = params.get('pn') ||
-                    params.get('mn') ||
-                    params.get('mname') ||
-                    params.get('merchant-name') ||
-                    params.get('merchant_name') ||
-                    params.get('merchant') ||
-                    params.get('name') ||
-                    '';
+                let name = params.get('pn') || params.get('mn') || params.get('mname') ||
+                    params.get('merchant-name') || params.get('merchant_name') || params.get('merchant') ||
+                    params.get('name') || '';
                 const am = params.get('am') || '';
                 const cu = params.get('cu') || 'INR';
                 const tn = params.get('tn') || '';
                 let upiId = pa;
                 if (!upiId) {
                     const pathParts = urlObj.pathname.split('/');
-                    if (pathParts.length > 1) {
-                        const last = pathParts[pathParts.length - 1];
-                        if (last.includes('@')) upiId = last;
-                    }
-                    if (!upiId) {
-                        const idMatch = url.match(/[?&]pa=([^&]+)/i);
-                        if (idMatch) upiId = decodeURIComponent(idMatch[1]);
-                    }
+                    if (pathParts.length > 1) { const last = pathParts[pathParts.length - 1]; if (last.includes('@')) upiId =
+                            last; }
+                    if (!upiId) { const idMatch = url.match(/[?&]pa=([^&]+)/i); if (idMatch) upiId = decodeURIComponent(
+                            idMatch[1]); }
                 }
                 if (!upiId && !name) {
                     const simpleMatch = raw.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+)/);
                     if (simpleMatch) {
-                        return {
-                            type: 'simple',
-                            upiId: simpleMatch[1],
-                            name: name || null,
-                            amount: am || null,
-                            currency: cu || null,
-                            tn: tn || null,
-                            raw: raw
-                        };
+                        return { type: 'simple', upiId: simpleMatch[1], name: name || null, amount: am || null,
+                            currency: cu || null, tn: tn || null, raw: raw };
                     }
                     return null;
                 }
                 if (!name) name = upiId || 'Unknown';
-                return {
-                    type: 'upi',
-                    upiId: upiId || 'N/A',
-                    name: name,
-                    amount: am || null,
-                    currency: cu || 'INR',
-                    tn: tn || null,
-                    mc: null,
-                    tid: null,
-                    mid: null,
-                    raw: raw
-                };
+                return { type: 'upi', upiId: upiId || 'N/A', name: name, amount: am || null, currency: cu || 'INR',
+                    tn: tn || null, mc: null, tid: null, mid: null, raw: raw };
             } catch (e) {
                 const paMatch = raw.match(/[?&]pa=([^&]+)/i);
                 const pnMatch = raw.match(/[?&]pn=([^&]+)/i);
@@ -1668,58 +1735,38 @@
                     if (!name && mnMatch) name = decodeURIComponent(mnMatch[1]);
                     if (!name && merchantMatch) name = decodeURIComponent(merchantMatch[1]);
                     if (!name) name = decodeURIComponent(paMatch[1]) || 'Unknown';
-                    return {
-                        type: 'upi',
-                        upiId: decodeURIComponent(paMatch[1]),
-                        name: name,
+                    return { type: 'upi', upiId: decodeURIComponent(paMatch[1]), name: name,
                         amount: amMatch ? decodeURIComponent(amMatch[1]) : null,
                         currency: cuMatch ? decodeURIComponent(cuMatch[1]) : 'INR',
-                        tn: tnMatch ? decodeURIComponent(tnMatch[1]) : null,
-                        mc: null,
-                        tid: null,
-                        mid: null,
-                        raw: raw
-                    };
+                        tn: tnMatch ? decodeURIComponent(tnMatch[1]) : null, mc: null, tid: null, mid: null,
+                    raw: raw };
                 }
                 const atMatch = raw.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+)/);
                 if (atMatch) {
-                    return {
-                        type: 'simple',
-                        upiId: atMatch[1],
-                        name: null,
-                        amount: null,
-                        currency: null,
-                        tn: null,
-                        raw: raw
-                    };
+                    return { type: 'simple', upiId: atMatch[1], name: null, amount: null, currency: null, tn: null,
+                        raw: raw };
                 }
                 return null;
             }
         }
 
-        // ── Global variables ──
+        // ── =================== GLOBALS =================== ──
         let scannedName = '';
         let scannedUpi = '';
-        let amountValue = ''; // used in amount screen
-        let pendingAmount = ''; // store amount for success after auth
+        let amountValue = '';
+        let pendingAmount = '';
 
-        // ── Camera & scanning state ──
-        let camStream = null;
-        let scanLoopId = null;
-        let flashMode = 'auto';
-        let torchOn = false;
-        let torchSupported = false;
-        let frameCount = 0;
-        let isScanning = true;
-        const DARK_THRESHOLD = 70;
-        const BRIGHT_THRESHOLD = 95;
+        // ── =================== CAMERA / SCANNER =================== ──
+        let camStream = null,
+            scanLoopId = null,
+            flashMode = 'auto',
+            torchOn = false,
+            torchSupported = false,
+            frameCount = 0,
+            isScanning = true;
+        const DARK_THRESHOLD = 70,
+            BRIGHT_THRESHOLD = 95;
 
-        // ── Pattern lock state ──
-        let selectedIndices = [];
-        const correctPattern = [3, 7, 6, 4]; // 4,8,7,5 (0-indexed)
-        let patternLocked = false;
-
-        // ── Camera functions ──
         function openCamera() {
             const overlay = document.getElementById('cameraOverlay');
             const video = document.getElementById('camVideo');
@@ -1728,13 +1775,11 @@
             overlay.classList.add('open');
             hint.textContent = 'Point at a QR code';
             status.textContent = 'Scan QR';
-
             flashMode = 'auto';
             torchOn = false;
             torchSupported = false;
             updateFlashUI();
             isScanning = true;
-
             navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
                 .then(stream => {
                     camStream = stream;
@@ -1742,19 +1787,14 @@
                     const track = stream.getVideoTracks()[0];
                     const caps = track.getCapabilities ? track.getCapabilities() : {};
                     torchSupported = !!(caps && caps.torch);
-                    video.onloadedmetadata = () => {
-                        video.play();
-                        scanLoop();
-                    };
+                    video.onloadedmetadata = () => { video.play();
+                        scanLoop(); };
                 })
-                .catch(err => {
-                    hint.textContent = 'Camera denied. Tap to retry.';
-                });
+                .catch(err => { hint.textContent = 'Camera denied. Tap to retry.'; });
         }
 
         function closeCamera() {
-            const overlay = document.getElementById('cameraOverlay');
-            overlay.classList.remove('open');
+            document.getElementById('cameraOverlay').classList.remove('open');
             setTorch(false);
             stopCamera();
             isScanning = false;
@@ -1763,34 +1803,24 @@
         function stopCamera() {
             if (scanLoopId) cancelAnimationFrame(scanLoopId);
             scanLoopId = null;
-            if (camStream) {
-                camStream.getTracks().forEach(t => t.stop());
-                camStream = null;
-            }
+            if (camStream) { camStream.getTracks().forEach(t => t.stop());
+                camStream = null; }
         }
 
-        // ── Flash and torch controls ──
         function updateFlashUI() {
             const modeLabel = document.getElementById('flashModeLabel');
             const toggleBtn = document.getElementById('flashToggleBtn');
             modeLabel.textContent = flashMode === 'auto' ? 'AUTO' : 'MANUAL';
-            if (flashMode === 'auto') {
-                toggleBtn.classList.add('locked');
-            } else {
-                toggleBtn.classList.remove('locked');
-            }
+            if (flashMode === 'auto') toggleBtn.classList.add('locked');
+            else toggleBtn.classList.remove('locked');
             toggleBtn.classList.toggle('on', torchOn);
         }
 
-        function toggleFlashMode() {
-            flashMode = (flashMode === 'auto') ? 'manual' : 'auto';
-            updateFlashUI();
-        }
+        function toggleFlashMode() { flashMode = (flashMode === 'auto') ? 'manual' : 'auto';
+            updateFlashUI(); }
 
-        function toggleTorchManual() {
-            if (flashMode !== 'manual') return;
-            setTorch(!torchOn);
-        }
+        function toggleTorchManual() { if (flashMode !== 'manual') return;
+            setTorch(!torchOn); }
 
         function setTorch(on) {
             torchOn = on;
@@ -1799,9 +1829,8 @@
             updateFlashUI();
             if (camStream) {
                 const track = camStream.getVideoTracks()[0];
-                if (track && track.applyConstraints) {
-                    track.applyConstraints({ advanced: [{ torch: on }] }).catch(() => {});
-                }
+                if (track && track.applyConstraints) { track.applyConstraints({ advanced: [{ torch: on }] }).catch(
+                    () => {}); }
             }
         }
 
@@ -1811,19 +1840,14 @@
             const step = 40 * 4;
             let total = 0,
                 count = 0;
-            for (let i = 0; i < data.length; i += step) {
-                total += 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
-                count++;
-            }
+            for (let i = 0; i < data.length; i += step) { total += 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i +
+                    2];
+                count++; }
             const avg = count ? total / count : 128;
-            if (!torchOn && avg < DARK_THRESHOLD) {
-                setTorch(true);
-            } else if (torchOn && avg > BRIGHT_THRESHOLD) {
-                setTorch(false);
-            }
+            if (!torchOn && avg < DARK_THRESHOLD) setTorch(true);
+            else if (torchOn && avg > BRIGHT_THRESHOLD) setTorch(false);
         }
 
-        // ── Main scanning loop ──
         function scanLoop() {
             const video = document.getElementById('camVideo');
             const canvas = document.getElementById('camCanvas');
@@ -1840,18 +1864,14 @@
                         frameCount++;
                         if (frameCount % 15 === 0) checkAutoBrightness(imageData);
                         const code = jsQR(imageData.data, imageData.width, imageData.height);
-                        if (code) {
-                            handleQRCode(code.data);
-                            return;
-                        }
-                    } catch (e) { /* ignore */ }
+                        if (code) { handleQRCode(code.data); return; }
+                    } catch (e) {}
                 }
                 scanLoopId = requestAnimationFrame(tick);
             }
             scanLoopId = requestAnimationFrame(tick);
         }
 
-        // ── Handle scanned QR data ──
         function handleQRCode(rawData) {
             if (!isScanning) return;
             isScanning = false;
@@ -1866,17 +1886,15 @@
                 openAmountScreen();
             } else {
                 document.getElementById('camHint').textContent = 'Not a UPI QR. Try again.';
-                setTimeout(() => {
-                    isScanning = true;
+                setTimeout(() => { isScanning = true;
                     document.getElementById('camHint').textContent = 'Point at a UPI QR code';
-                    scanLoop();
-                }, 2000);
+                    scanLoop(); }, 2000);
             }
         }
 
         function manualScanTrigger() {}
 
-        // ── Amount screen ──
+        // ── =================== AMOUNT SCREEN =================== ──
         function openAmountScreen() {
             document.getElementById('amtName').textContent = scannedName || 'Unknown';
             document.getElementById('upiIdDisplay').textContent = scannedUpi || 'No UPI ID';
@@ -1886,18 +1904,13 @@
             window.scrollTo({ top: 0, behavior: 'auto' });
         }
 
-        function closeAmountScreen() {
-            document.getElementById('amountScreen').classList.remove('open');
-        }
+        function closeAmountScreen() { document.getElementById('amountScreen').classList.remove('open'); }
 
         function updateAmountDisplay() {
             document.getElementById('amtDisplay').textContent = amountValue;
             const btn = document.getElementById('payNowBtn');
-            if (amountValue.length > 0 && amountValue !== '.') {
-                btn.classList.remove('disabled');
-            } else {
-                btn.classList.add('disabled');
-            }
+            if (amountValue.length > 0 && amountValue !== '.') btn.classList.remove('disabled');
+            else btn.classList.add('disabled');
         }
 
         function pressKey(k) {
@@ -1907,10 +1920,8 @@
             updateAmountDisplay();
         }
 
-        function pressBackspace() {
-            amountValue = amountValue.slice(0, -1);
-            updateAmountDisplay();
-        }
+        function pressBackspace() { amountValue = amountValue.slice(0, -1);
+            updateAmountDisplay(); }
 
         function payNow() {
             const btn = document.getElementById('payNowBtn');
@@ -1920,18 +1931,20 @@
             openAuthScreen();
         }
 
-        // ── Authentication (Pattern Lock) Screen ──
+        // ── =================== AUTHENTICATION (PATTERN) =================== ──
+        let selectedIndices = [];
+        const correctPattern = [3, 7, 6, 4]; // 4,8,7,5 (0-indexed)
+        let patternLocked = false;
+
         function openAuthScreen() {
             document.getElementById('authScreen').classList.add('open');
             resetPattern();
             document.getElementById('authError').textContent = '';
-            // Redraw canvas after layout
             setTimeout(() => drawPattern(), 50);
         }
 
         function closeAuthScreen() {
             document.getElementById('authScreen').classList.remove('open');
-            // Go back to amount screen
             openAmountScreen();
         }
 
@@ -1946,7 +1959,6 @@
                 dot.addEventListener('click', () => onDotClick(i));
                 grid.appendChild(dot);
             }
-            // Setup canvas
             const canvas = document.getElementById('authCanvas');
             const wrap = canvas.parentElement;
             canvas.width = wrap.offsetWidth || 260;
@@ -1958,10 +1970,7 @@
             const dots = grid.querySelectorAll('.auth-dot');
             const rect = grid.getBoundingClientRect();
             const dotRect = dots[index].getBoundingClientRect();
-            return {
-                x: dotRect.left - rect.left + dotRect.width / 2,
-                y: dotRect.top - rect.top + dotRect.height / 2
-            };
+            return { x: dotRect.left - rect.left + dotRect.width / 2, y: dotRect.top - rect.top + dotRect.height / 2 };
         }
 
         function drawPattern() {
@@ -1971,15 +1980,12 @@
             canvas.width = rect.width;
             canvas.height = rect.height;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
             if (selectedIndices.length < 2) return;
-
             ctx.beginPath();
             ctx.strokeStyle = '#ffd400';
             ctx.lineWidth = 3;
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
-
             const first = getDotCenter(selectedIndices[0]);
             ctx.moveTo(first.x, first.y);
             for (let i = 1; i < selectedIndices.length; i++) {
@@ -1987,36 +1993,29 @@
                 ctx.lineTo(pt.x, pt.y);
             }
             ctx.stroke();
-
-            // Draw dots on top (they are already styled via CSS)
         }
 
         function onDotClick(index) {
             if (patternLocked) return;
             if (selectedIndices.includes(index)) return;
             if (selectedIndices.length >= 4) return;
-
             selectedIndices.push(index);
-            // Update UI
             const dots = document.querySelectorAll('.auth-dot');
-            dots.forEach((dot, i) => {
-                dot.classList.toggle('selected', selectedIndices.includes(i));
-            });
+            dots.forEach((dot, i) => { dot.classList.toggle('selected', selectedIndices.includes(i)); });
             drawPattern();
-
-            // Check if we have 4 dots
             if (selectedIndices.length === 4) {
                 patternLocked = true;
                 const isCorrect = arraysEqual(selectedIndices, correctPattern);
                 if (isCorrect) {
                     document.getElementById('authError').textContent = '✅ Pattern correct!';
+                    // Save transaction
+                    saveTransaction(pendingAmount);
                     setTimeout(() => {
                         closeAuthScreen();
                         showSuccessScreen(pendingAmount);
                     }, 400);
                 } else {
                     document.getElementById('authError').textContent = '❌ Wrong pattern. Try again.';
-                    // Flash red on dots
                     dots.forEach(dot => dot.classList.add('error-flash'));
                     setTimeout(() => {
                         dots.forEach(dot => dot.classList.remove('error-flash'));
@@ -2031,33 +2030,86 @@
             patternLocked = false;
             document.getElementById('authError').textContent = '';
             const dots = document.querySelectorAll('.auth-dot');
-            dots.forEach(dot => {
-                dot.classList.remove('selected', 'error-flash');
-            });
+            dots.forEach(dot => dot.classList.remove('selected', 'error-flash'));
             drawPattern();
         }
 
-        function arraysEqual(a, b) {
-            if (a.length !== b.length) return false;
-            for (let i = 0; i < a.length; i++) {
-                if (a[i] !== b[i]) return false;
-            }
-            return true;
+        function arraysEqual(a, b) { if (a.length !== b.length) return false; for (let i = 0; i < a.length; i++) { if (a[
+                    i] !== b[i]) return false; } return true; }
+
+        // ── =================== TRANSACTION HISTORY =================== ──
+        function saveTransaction(amount) {
+            const txn = {
+                id: 'TXN' + Date.now().toString(36).toUpperCase(),
+                amount: amount || '0',
+                recipient: scannedName || 'Unknown',
+                upi: scannedUpi || 'N/A',
+                date: new Date().toISOString(),
+                status: 'Paid'
+            };
+            let transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+            transactions.unshift(txn); // newest first
+            localStorage.setItem('transactions', JSON.stringify(transactions));
         }
 
-        // ── Success screen ──
-        function formatTxnId() {
-            let id = 'FMPIB';
-            for (let i = 0; i < 10; i++) id += Math.floor(Math.random() * 10);
-            return id;
+        function getTransactions() {
+            return JSON.parse(localStorage.getItem('transactions') || '[]');
         }
+
+        function openTxnHistory() {
+            const screen = document.getElementById('txnScreen');
+            screen.classList.add('open');
+            renderTransactions();
+        }
+
+        function closeTxnHistory() {
+            document.getElementById('txnScreen').classList.remove('open');
+        }
+
+        function renderTransactions() {
+            const list = document.getElementById('txnList');
+            const txns = getTransactions();
+            if (txns.length === 0) {
+                list.innerHTML = `<div class="txn-empty">No transactions yet.</div>`;
+                return;
+            }
+            let html = '';
+            txns.forEach(t => {
+                const date = new Date(t.date);
+                const dateStr = date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+                const timeStr = date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+                html += `
+                    <div class="txn-item">
+                        <div class="txn-item-top">
+                            <span class="txn-recipient">${escapeHtml(t.recipient)}</span>
+                            <span class="txn-amount">₹${t.amount}</span>
+                        </div>
+                        <div class="txn-upi">${escapeHtml(t.upi)}</div>
+                        <div class="txn-meta">
+                            <span>${dateStr} · ${timeStr}</span>
+                            <span class="txn-status">${t.status}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            list.innerHTML = html;
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // ── =================== SUCCESS SCREEN =================== ──
+        function formatTxnId() { let id = 'FMPIB'; for (let i = 0; i < 10; i++) id += Math.floor(Math.random() * 10); return id; }
 
         function formatDateTime(d) {
             const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            let h = d.getHours();
-            const ampm = h >= 12 ? 'pm' : 'am';
-            h = h % 12;
-            if (h === 0) h = 12;
+            let h = d.getHours(),
+                ampm = h >= 12 ? 'pm' : 'am';
+            h = h % 12 || 12;
             const min = d.getMinutes().toString().padStart(2, '0');
             return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()} at ${h}:${min} ${ampm}`;
         }
@@ -2079,22 +2131,17 @@
             sound.play().catch(() => {});
         }
 
-        function closeSuccess() {
-            document.getElementById('successScreen').classList.remove('open');
-        }
+        function closeSuccess() { document.getElementById('successScreen').classList.remove('open'); }
 
-        // ── Init pattern grid ──
+        // ── =================== INIT =================== ──
         window.addEventListener('load', () => {
             initPatternGrid();
-            // Adjust canvas on resize/orientation
             window.addEventListener('resize', () => {
-                if (document.getElementById('authScreen').classList.contains('open')) {
-                    drawPattern();
-                }
+                if (document.getElementById('authScreen').classList.contains('open')) drawPattern();
             });
         });
 
-        // ── Expose to HTML onclick ──
+        // ── =================== EXPOSE =================== ──
         window.openCamera = openCamera;
         window.closeCamera = closeCamera;
         window.toggleFlashMode = toggleFlashMode;
@@ -2107,6 +2154,8 @@
         window.closeSuccess = closeSuccess;
         window.closeAuthScreen = closeAuthScreen;
         window.resetPattern = resetPattern;
+        window.openTxnHistory = openTxnHistory;
+        window.closeTxnHistory = closeTxnHistory;
     </script>
 
 </body>
