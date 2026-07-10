@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Pay App UI Clone</title>
     <style>
         * {
@@ -1444,7 +1445,7 @@
 
                     <!-- Camera layer -->
                     <div class="qr-camera-layer" id="cameraOverlay">
-                        <video id="camVideo" autoplay playsinline muted onclick="event.stopPropagation(); manualScanTrigger();"></video>
+                        <video id="camVideo" autoplay playsinline muted></video>
                         <div class="cam-topbar">
                             <div class="cam-close" onclick="event.stopPropagation(); closeCamera();">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg>
@@ -1469,7 +1470,7 @@
                                 <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="handleFileUpload(event)" />
                             </div>
                         </div>
-                        <div class="scan-frame-wrap" onclick="event.stopPropagation(); manualScanTrigger();">
+                        <div class="scan-frame-wrap">
                             <div class="scan-frame">
                                 <div class="corner tl"></div>
                                 <div class="corner tr"></div>
@@ -1479,7 +1480,6 @@
                             </div>
                         </div>
                         <div class="cam-hint" id="camHint">Point at a QR code</div>
-                        <canvas id="camCanvas" style="display:none;"></canvas>
                     </div>
                 </div>
             </div>
@@ -1775,11 +1775,7 @@
 
     <audio id="paymentSound" src="payment.mp3" preload="auto"></audio>
 
-    <!-- Load libraries -->
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js">
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js">
-    </script>
+    <!-- No external scripts – all offline using BarcodeDetector API -->
 
     <script>
         // ── =================== UPI PARSING (Enhanced for merchant) =================== ──
@@ -1904,27 +1900,43 @@
         // ── =================== GLOBALS =================== ──
         let scannedName = '';
         let scannedUpi = '';
-        let amountValue = ''; // used in amount screen
-        let pendingAmount = ''; // store amount for success after auth
+        let amountValue = '';
+        let pendingAmount = '';
 
-        // ── =================== CAMERA / SCANNER =================== ──
+        // ── =================== CAMERA / SCANNER using BarcodeDetector =================== ──
         let camStream = null;
         let scanLoopId = null;
         let flashMode = 'auto';
         let torchOn = false;
         let torchSupported = false;
-        let frameCount = 0;
         let isScanning = true;
         const DARK_THRESHOLD = 70;
         const BRIGHT_THRESHOLD = 95;
 
-        // ── =================== PATTERN LOCK STATE =================== ──
-        let selectedIndices = [];
-        const correctPattern = [3, 7, 6, 4]; // 4,8,7,5 (0-indexed)
-        let patternLocked = false;
+        // Check if BarcodeDetector is supported
+        let barcodeDetector = null;
+        let isBarcodeSupported = false;
+
+        (function initBarcodeDetector() {
+            if ('BarcodeDetector' in window) {
+                try {
+                    barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] });
+                    isBarcodeSupported = true;
+                    console.log('BarcodeDetector supported.');
+                } catch (e) {
+                    console.warn('BarcodeDetector creation failed:', e);
+                }
+            } else {
+                console.warn('BarcodeDetector not supported in this browser.');
+            }
+        })();
 
         // ── =================== CAMERA FUNCTIONS =================== ──
         function openCamera() {
+            if (!isBarcodeSupported) {
+                showToast('❌ BarcodeDetector not supported. Use Chrome/Edge.', 'error');
+                return;
+            }
             const overlay = document.getElementById('cameraOverlay');
             const video = document.getElementById('camVideo');
             const hint = document.getElementById('camHint');
@@ -2027,31 +2039,47 @@
             }
         }
 
-        // ── =================== SCANNING LOOP =================== ──
+        // ── =================== SCANNING LOOP using BarcodeDetector =================== ──
         function scanLoop() {
             const video = document.getElementById('camVideo');
             const canvas = document.getElementById('camCanvas');
+            if (!canvas) return; // safety
             const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
-            function tick() {
+            let lastDetectionTime = 0;
+            const detectionInterval = 200; // ms
+
+            async function tick() {
                 if (!camStream || !isScanning) return;
                 if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    try {
-                        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                        frameCount++;
-                        if (frameCount % 15 === 0) checkAutoBrightness(imageData);
-                        const code = jsQR(imageData.data, imageData.width, imageData.height);
-                        if (code) {
-                            handleQRCode(code.data);
-                            return;
+                    const now = Date.now();
+                    if (now - lastDetectionTime >= detectionInterval) {
+                        lastDetectionTime = now;
+                        try {
+                            // We can attempt to detect directly on video element
+                            const barcodes = await barcodeDetector.detect(video);
+                            if (barcodes.length > 0) {
+                                const rawData = barcodes[0].rawValue;
+                                handleQRCode(rawData);
+                                return;
+                            }
+                        } catch (e) {
+                            // fallback: draw to canvas and detect (some browsers need this)
+                            canvas.width = video.videoWidth;
+                            canvas.height = video.videoHeight;
+                            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                            // Auto brightness check (optional)
+                            frameCount++;
+                            if (frameCount % 15 === 0) checkAutoBrightness(imageData);
+                            // BarcodeDetector can also work on ImageData via canvas? Actually we can't pass ImageData directly.
+                            // So we rely on video detection.
                         }
-                    } catch (e) { /* ignore */ }
+                    }
                 }
                 scanLoopId = requestAnimationFrame(tick);
             }
+            let frameCount = 0;
             scanLoopId = requestAnimationFrame(tick);
         }
 
@@ -2078,29 +2106,49 @@
             }
         }
 
-        function manualScanTrigger() {}
-
-        // ── =================== FILE UPLOAD (GALLERY) – ROBUST FOR LOW QUALITY =================== ──
+        // ── =================== FILE UPLOAD (GALLERY) using BarcodeDetector =================== ──
         function handleFileUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
+            if (!isBarcodeSupported) {
+                showToast('❌ BarcodeDetector not supported. Use Chrome/Edge.', 'error');
+                return;
+            }
             showToast('🔄 Processing image...', 'info');
             const reader = new FileReader();
-            reader.onload = function(e) {
-                const imgDataUrl = e.target.result;
-                // Try html5-qrcode first (fast and robust)
+            reader.onload = async function(e) {
                 try {
-                    const html5qr = new Html5Qrcode("dummy");
-                    html5qr.scanFile(imgDataUrl, true)
-                        .then(decodedText => {
-                            processDecoded(decodedText);
-                        })
-                        .catch(err => {
-                            console.warn("html5-qrcode failed, falling back to jsQR with preprocessing", err);
-                            fallbackDecode(imgDataUrl);
-                        });
+                    const img = new Image();
+                    img.onload = async function() {
+                        try {
+                            const bitmap = await createImageBitmap(img);
+                            const barcodes = await barcodeDetector.detect(bitmap);
+                            if (barcodes.length > 0) {
+                                const rawData = barcodes[0].rawValue;
+                                const parsed = parseUPIData(rawData);
+                                if (parsed && parsed.upiId) {
+                                    scannedUpi = parsed.upiId;
+                                    scannedName = parsed.name || parsed.upiId;
+                                    closeCamera();
+                                    document.getElementById('cameraOverlay').classList.remove('open');
+                                    openAmountScreen();
+                                    showToast('✅ QR detected successfully!', 'success');
+                                } else {
+                                    showToast('❌ Not a valid UPI QR code', 'error');
+                                }
+                            } else {
+                                showToast('❌ No QR found in image', 'error');
+                            }
+                        } catch (err) {
+                            showToast('❌ Error processing image: ' + err.message, 'error');
+                        }
+                    };
+                    img.onerror = function() {
+                        showToast('Failed to load image', 'error');
+                    };
+                    img.src = e.target.result;
                 } catch (err) {
-                    fallbackDecode(imgDataUrl);
+                    showToast('❌ Error reading file: ' + err.message, 'error');
                 }
             };
             reader.onerror = function() {
@@ -2108,145 +2156,6 @@
             };
             reader.readAsDataURL(file);
             event.target.value = '';
-        }
-
-        function processDecoded(decodedText) {
-            const parsed = parseUPIData(decodedText);
-            if (parsed && parsed.upiId) {
-                scannedUpi = parsed.upiId;
-                scannedName = parsed.name || parsed.upiId;
-                closeCamera();
-                document.getElementById('cameraOverlay').classList.remove('open');
-                openAmountScreen();
-                showToast('✅ QR detected successfully!', 'success');
-            } else {
-                showToast('❌ Not a valid UPI QR code', 'error');
-            }
-        }
-
-        function fallbackDecode(imgDataUrl) {
-            const img = new Image();
-            img.onload = function() {
-                // Try multiple sizes and preprocessing steps
-                const sizes = [
-                    { w: 800, h: 800 },
-                    { w: 600, h: 600 },
-                    { w: 400, h: 400 },
-                    { w: 300, h: 300 },
-                    { w: img.width, h: img.height }
-                ];
-                let decoded = false;
-                for (let size of sizes) {
-                    let w = size.w,
-                        h = size.h;
-                    if (w > img.width && h > img.height) {
-                        w = img.width;
-                        h = img.height;
-                    } else {
-                        const ratio = Math.min(w / img.width, h / img.height);
-                        w = Math.round(img.width * ratio);
-                        h = Math.round(img.height * ratio);
-                    }
-                    const canvas = document.createElement('canvas');
-                    canvas.width = w;
-                    canvas.height = h;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, w, h);
-                    let imageData = ctx.getImageData(0, 0, w, h);
-
-                    // 1. Original
-                    let code = jsQR(imageData.data, w, h, { inversionAttempts: "attemptBoth" });
-                    if (code) { processDecoded(code.data);
-                        decoded = true; break; }
-
-                    // 2. Grayscale + High Contrast
-                    let processed = preprocessImageData(imageData, 2.0, 0);
-                    code = jsQR(processed.data, w, h, { inversionAttempts: "attemptBoth" });
-                    if (code) { processDecoded(code.data);
-                        decoded = true; break; }
-
-                    // 3. Brightness Boost
-                    processed = preprocessImageData(imageData, 1.0, 50);
-                    code = jsQR(processed.data, w, h, { inversionAttempts: "attemptBoth" });
-                    if (code) { processDecoded(code.data);
-                        decoded = true; break; }
-
-                    // 4. Invert Colors
-                    processed = invertImageData(imageData);
-                    code = jsQR(processed.data, w, h, { inversionAttempts: "attemptBoth" });
-                    if (code) { processDecoded(code.data);
-                        decoded = true; break; }
-
-                    // 5. Sharpen
-                    processed = sharpenImageData(imageData);
-                    code = jsQR(processed.data, w, h, { inversionAttempts: "attemptBoth" });
-                    if (code) { processDecoded(code.data);
-                        decoded = true; break; }
-                }
-                if (!decoded) {
-                    showToast('❌ No QR found. Try a clearer image.', 'error');
-                }
-            };
-            img.onerror = function() {
-                showToast('Failed to load image for fallback', 'error');
-            };
-            img.src = imgDataUrl;
-        }
-
-        // Preprocessing helpers
-        function preprocessImageData(imageData, contrast, brightness) {
-            const data = imageData.data;
-            const newData = new Uint8ClampedArray(data);
-            const factor = (259 * (contrast * 100 + 255)) / (255 * (259 - contrast * 100));
-            for (let i = 0; i < newData.length; i += 4) {
-                let gray = 0.299 * newData[i] + 0.587 * newData[i + 1] + 0.114 * newData[i + 2];
-                gray = factor * (gray - 128) + 128 + brightness;
-                gray = Math.min(255, Math.max(0, gray));
-                newData[i] = gray;
-                newData[i + 1] = gray;
-                newData[i + 2] = gray;
-            }
-            return new ImageData(newData, imageData.width, imageData.height);
-        }
-
-        function invertImageData(imageData) {
-            const data = imageData.data;
-            const newData = new Uint8ClampedArray(data);
-            for (let i = 0; i < newData.length; i += 4) {
-                newData[i] = 255 - newData[i];
-                newData[i + 1] = 255 - newData[i + 1];
-                newData[i + 2] = 255 - newData[i + 2];
-            }
-            return new ImageData(newData, imageData.width, imageData.height);
-        }
-
-        function sharpenImageData(imageData) {
-            const data = imageData.data;
-            const w = imageData.width,
-                h = imageData.height;
-            const output = new Uint8ClampedArray(data);
-            const kernel = [0, -1, 0, -1, 5, -1, 0, -1, 0];
-            for (let y = 1; y < h - 1; y++) {
-                for (let x = 1; x < w - 1; x++) {
-                    let r = 0,
-                        g = 0,
-                        b = 0;
-                    for (let ky = -1; ky <= 1; ky++) {
-                        for (let kx = -1; kx <= 1; kx++) {
-                            const idx = ((y + ky) * w + (x + kx)) * 4;
-                            const k = kernel[(ky + 1) * 3 + (kx + 1)];
-                            r += data[idx] * k;
-                            g += data[idx + 1] * k;
-                            b += data[idx + 2] * k;
-                        }
-                    }
-                    const idx = (y * w + x) * 4;
-                    output[idx] = Math.min(255, Math.max(0, r));
-                    output[idx + 1] = Math.min(255, Math.max(0, g));
-                    output[idx + 2] = Math.min(255, Math.max(0, b));
-                }
-            }
-            return new ImageData(output, w, h);
         }
 
         // ── =================== TOAST =================== ──
@@ -2322,6 +2231,10 @@
         }
 
         // ── =================== AUTHENTICATION (PATTERN) =================== ──
+        let selectedIndices = [];
+        const correctPattern = [3, 7, 6, 4]; // 4,8,7,5 (0-indexed)
+        let patternLocked = false;
+
         function openAuthScreen() {
             document.getElementById('authScreen').classList.add('open');
             resetPattern();
@@ -2545,8 +2458,6 @@
 
         function closeSuccess() {
             document.getElementById('successScreen').classList.remove('open');
-            // Reset scanned data if needed
-            // scannedName = ''; scannedUpi = '';
         }
 
         // ── =================== INIT =================== ──
@@ -2557,6 +2468,10 @@
                     drawPattern();
                 }
             });
+            // Check for BarcodeDetector support
+            if (!isBarcodeSupported) {
+                showToast('⚠️ BarcodeDetector not supported. Use Chrome/Edge.', 'warning');
+            }
         });
 
         // ── =================== EXPOSE =================== ──
@@ -2564,7 +2479,6 @@
         window.closeCamera = closeCamera;
         window.toggleFlashMode = toggleFlashMode;
         window.toggleTorchManual = toggleTorchManual;
-        window.manualScanTrigger = manualScanTrigger;
         window.closeAmountScreen = closeAmountScreen;
         window.pressKey = pressKey;
         window.pressBackspace = pressBackspace;
