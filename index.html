@@ -1466,10 +1466,10 @@
         }
         .qr-modal-close svg {
             width: 16px;
-            height: 100px;
+            height: 106px;
             fill: none;
             stroke: #fff;
-            stroke-width: 2.5;
+            stroke-width: 92.5;
         }
     </style>
 </head>
@@ -1542,6 +1542,7 @@
                             </div>
                         </div>
                         <div class="cam-hint" id="camHint">Point at a QR code</div>
+                        <canvas id="camCanvas" style="display:none;"></canvas>
                     </div>
                 </div>
             </div>
@@ -1973,6 +1974,7 @@
         let scannedUpi = '';
         let amountValue = '';
         let pendingAmount = '';
+        let frameCount = 0;
 
         // ── =================== CAMERA / SCANNER using BarcodeDetector =================== ──
         let camStream = null;
@@ -2021,6 +2023,7 @@
             torchSupported = false;
             updateFlashUI();
             isScanning = true;
+            frameCount = 0;
 
             navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
                 .then(stream => {
@@ -2110,15 +2113,14 @@
             }
         }
 
-        // ── =================== SCANNING LOOP using BarcodeDetector =================== ──
+        // ── =================== SCANNING LOOP (FIXED) =================== ──
         function scanLoop() {
             const video = document.getElementById('camVideo');
             const canvas = document.getElementById('camCanvas');
-            if (!canvas) return; // safety
+            if (!canvas) return;
             const ctx = canvas.getContext('2d', { willReadFrequently: true });
-
             let lastDetectionTime = 0;
-            const detectionInterval = 200; // ms
+            const detectionInterval = 150; // ms between detections
 
             async function tick() {
                 if (!camStream || !isScanning) return;
@@ -2127,26 +2129,32 @@
                     if (now - lastDetectionTime >= detectionInterval) {
                         lastDetectionTime = now;
                         try {
-                            const barcodes = await barcodeDetector.detect(video);
+                            // Draw current frame to canvas
+                            canvas.width = video.videoWidth;
+                            canvas.height = video.videoHeight;
+                            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                            // Convert canvas to ImageBitmap for detection
+                            const bitmap = await createImageBitmap(canvas);
+                            const barcodes = await barcodeDetector.detect(bitmap);
                             if (barcodes.length > 0) {
                                 const rawData = barcodes[0].rawValue;
                                 handleQRCode(rawData);
                                 return;
                             }
-                        } catch (e) {
-                            // fallback: draw to canvas and detect (some browsers need this)
-                            canvas.width = video.videoWidth;
-                            canvas.height = video.videoHeight;
-                            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                            // Auto brightness check using imageData
                             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                             frameCount++;
-                            if (frameCount % 15 === 0) checkAutoBrightness(imageData);
+                            if (frameCount % 15 === 0) {
+                                checkAutoBrightness(imageData);
+                            }
+                        } catch (e) {
+                            // Fallback: if detection fails, just continue
+                            // console.debug('Detection error:', e);
                         }
                     }
                 }
                 scanLoopId = requestAnimationFrame(tick);
             }
-            let frameCount = 0;
             scanLoopId = requestAnimationFrame(tick);
         }
 
