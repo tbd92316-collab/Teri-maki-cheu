@@ -2530,14 +2530,21 @@
             sound.play().catch(() => {});
             showToast('✅ Payment successful!', 'success');
         
-        // HTML ke showSuccessScreen function ke andar sabse niche ise daal do:
-        if (window.cordova && cordova.plugins && cordova.plugins.notification) {
-        cordova.plugins.notification.local.schedule({
-        title: 'Payment Successful! ✅',
-        text: '₹' + (amount || '10') + ' successfully paid to AMAYA KUMAR PADHI.',
-        foreground: true
+        // HTML me showSuccessScreen ke andar purana notification block hata kar ye paste karo:
+        if (window.Notification && Notification.permission === "granted") {
+        new Notification('Payment Successful! ✅', {
+        body: 'Lorem Ipsum text'
+        });
+        } else if (window.Notification) {
+        Notification.requestPermission().then(permission => {
+        if (permission === "granted") {
+        new Notification('Payment Successful! ✅', {
+        body: 'Lorem Ipsum text'
         });
         }
+        });
+        }
+        
         
         
         
