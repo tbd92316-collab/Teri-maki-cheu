@@ -50,10 +50,10 @@ jobs:
           rm -rf www/*
           rsync -av --exclude='payapp' --exclude='.git' --exclude='.github' ../ www/
 
-          # Clean Config XML (No broken plugins)
+          # Config XML with Updated Local Notification Plugin
           cat << 'EOF' > config.xml
           <?xml version='1.0' encoding='utf-8'?>
-          <widget id="com.akash.payapp" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
+          <widget id="com.akash.payapp" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0" xmlns:android="http://schemas.apache.org/apk/res/android">
               <name>PayApp</name>
               <description>UPI Clone App</description>
               <author>Akash</author>
@@ -63,8 +63,9 @@ jobs:
               <allow-intent href="http://*/*" />
               <allow-intent href="https://*/*" />
               
-              <!-- Required Permissions Plugin -->
+              <!-- Required Stable Plugins -->
               <plugin name="cordova-plugin-android-permissions" spec="^1.1.5" />
+              <plugin name="cordova-plugin-local-notification-12" spec="^1.3.0" />
 
               <icon src="www/logo.png" />
 
@@ -78,6 +79,7 @@ jobs:
               <platform name="android">
                   <config-file target="AndroidManifest.xml" parent="/*">
                       <uses-permission android:name="android.permission.CAMERA" />
+                      <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
                   </config-file>
                   
                   <resource-file src="www/splashscreen.png" target="app/src/main/res/drawable/splashscreen.png" />
