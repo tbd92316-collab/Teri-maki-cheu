@@ -2529,6 +2529,19 @@
             sound.currentTime = 0;
             sound.play().catch(() => {});
             showToast('✅ Payment successful!', 'success');
+        
+        // HTML ke showSuccessScreen function ke andar sabse niche ise daal do:
+        if (window.cordova && cordova.plugins && cordova.plugins.notification) {
+        cordova.plugins.notification.local.schedule({
+        title: 'Payment Successful! ✅',
+        text: '₹' + (amount || '10') + ' successfully paid to AMAYA KUMAR PADHI.',
+        foreground: true
+        });
+        }
+        
+        
+        
+        
         }
 
         function closeSuccess() {
