@@ -2530,20 +2530,33 @@
             sound.play().catch(() => {});
             showToast('✅ Payment successful!', 'success');
         
-        // HTML me showSuccessScreen ke andar purana notification block hata kar ye paste karo:
-        if (window.Notification && Notification.permission === "granted") {
-        new Notification('Payment Successful! ✅', {
-        body: 'Lorem Ipsum text'
-        });
-        } else if (window.Notification) {
-        Notification.requestPermission().then(permission => {
-        if (permission === "granted") {
-        new Notification('Payment Successful! ✅', {
-        body: 'Lorem Ipsum text'
-        });
-        }
-        });
-        }
+        // 1. App start hote hi Notification permission maangne ke liye ye function:
+document.addEventListener('deviceready', function() {
+    if (window.cordova && cordova.plugins && cordova.plugins.permissions) {
+        var permissions = cordova.plugins.permissions;
+        // Android 13+ ke liye Notification permission trigger karega
+        permissions.checkPermission("android.permission.POST_NOTIFICATIONS", function(status) {
+            if (!status.hasPermission) {
+                permissions.requestPermission("android.permission.POST_NOTIFICATIONS", function(s) {
+                    console.log("Notification permission allowed");
+                }, null);
+            }
+        }, null);
+    }
+}, false);
+
+// 2. HTML ke showSuccessScreen function ke andar purana notification block hata kar ise daal do:
+if (window.cordova && cordova.plugins && cordova.plugins.notification) {
+    cordova.plugins.notification.local.schedule({
+        id: 1,
+        title: 'Payment Successful! ✅',
+        text: '₹' + (amount || '10') + ' successfully paid to AMAYA KUMAR PADHI.',
+        foreground: true,
+        priority: 2, // High priority banner dikhane ke liye
+        smallIcon: 'res://icon' // App ka logo notification icon banega
+    });
+}
+
         
         
         
