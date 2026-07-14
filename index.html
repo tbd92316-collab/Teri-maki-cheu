@@ -2544,17 +2544,22 @@ document.addEventListener('deviceready', function() {
     }
 }, false);
 
-// 2. HTML ke showSuccessScreen function ke andar purana notification block hata kar ise daal do:
+// HTML ke showSuccessScreen function ke andar isko paste karo:
 if (window.cordova && cordova.plugins && cordova.plugins.notification) {
     cordova.plugins.notification.local.schedule({
-        id: 1,
+        id: new Date().getTime(), // Har baar naya ID taaki purana overwrite na ho
         title: 'Payment Successful! ✅',
         text: '₹' + (amount || '10') + ' successfully paid to AMAYA KUMAR PADHI.',
-        foreground: true,
-        priority: 2, // High priority banner dikhane ke liye
-        smallIcon: 'res://icon' // App ka logo notification icon banega
+        foreground: true, // App open hone par bhi top se notification aayega
+        vibrate: true,    // Notification aate hi phone vibrate karega
+        wakeup: true,     // Screen off hone par screen on kar dega
+        priority: 2       // High priority (Heads-up banner ke liye)
+        // Note: smallIcon line ko hata diya gaya hai taaki Android khud default app logo utha le aur crash na ho.
     });
+} else {
+    console.log("Notification plugin load nahi hua.");
 }
+
 
         
         
