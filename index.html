@@ -1477,10 +1477,8 @@
 
     <div class="phone">
 
-        <!-- stripes -->
         <div class="stripes"></div>
 
-        <!-- ─── SCROLLABLE MAIN CONTENT ─── -->
         <div class="screen-main" id="mainScreen">
 
             <div class="toprow">
@@ -1505,7 +1503,6 @@
                     <div class="qr-corner bl"></div>
                     <div class="qr-text">Scan<br>&amp; pay</div>
 
-                    <!-- Camera layer -->
                     <div class="qr-camera-layer" id="cameraOverlay">
                         <video id="camVideo" autoplay playsinline muted></video>
                         <div class="cam-topbar">
@@ -1521,7 +1518,6 @@
                                 <div class="flash-toggle-btn locked" id="flashToggleBtn" onclick="event.stopPropagation(); toggleTorchManual();">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="M13 2L4 14h6l-1 8 9-12h-6z"/></svg>
                                 </div>
-                                <!-- Upload button -->
                                 <div class="upload-btn" onclick="event.stopPropagation(); document.getElementById('fileInput').click();">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
@@ -1551,9 +1547,7 @@
                 <div class="coming-soon">Coming soon <span>&#8594;</span></div>
             </div>
 
-            <!-- action row 1 -->
             <div class="row grid-row">
-                <!-- Your QR – with onclick to open modal -->
                 <div class="action" onclick="openQRModal()">
                     <div class="icon-circle">
                         <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><circle cx="17.5" cy="17.5" r="2"/></svg>
@@ -1572,7 +1566,6 @@
                 </div>
             </div>
 
-            <!-- action row 2 – added TXN button -->
             <div class="row" style="margin-bottom: 4px;">
                 <div class="action">
                     <div class="icon-circle">
@@ -1593,7 +1586,6 @@
                     </div>
                     <div class="action-label">Google Play</div>
                 </div>
-                <!-- TXN History button -->
                 <div class="action" onclick="openTxnHistory()" style="cursor:pointer;">
                     <div class="icon-circle">
                         <svg viewBox="0 0 24 24" fill="none" stroke="#ffb020" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
@@ -1602,7 +1594,6 @@
                 </div>
             </div>
 
-            <!-- Recommended -->
             <div class="recommended">
                 <div class="section-title">Recommended</div>
                 <div class="rec-row">
@@ -1639,7 +1630,6 @@
                 </div>
             </div>
 
-            <!-- Picked for you -->
             <div class="picked">
                 <div class="section-title center">Picked for you</div>
                 <div class="deal-scroll">
@@ -1661,7 +1651,6 @@
                 </div>
             </div>
 
-            <!-- FamApp upgrades -->
             <div class="famapp">
                 <div class="section-title">FamApp upgrades</div>
                 <div class="fam-scroll">
@@ -1687,9 +1676,6 @@
             <div style="height:12px;"></div>
 
         </div>
-        <!-- /screen-main -->
-
-        <!-- ─── BOTTOM NAV ─── -->
         <div class="bottomnav">
             <div class="navitem">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>
@@ -1713,9 +1699,6 @@
             </div>
         </div>
 
-        <!-- ─── OVERLAY SCREENS ─── -->
-
-        <!-- Amount screen -->
         <div class="amount-screen" id="amountScreen">
             <div class="amt-back" onclick="closeAmountScreen()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12,19 5,12 12,5"/></svg>
@@ -1762,7 +1745,6 @@
             </div>
         </div>
 
-        <!-- ─── AUTH (Pattern Lock) SCREEN ─── -->
         <div class="auth-screen" id="authScreen">
             <div class="auth-back" onclick="closeAuthScreen()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12,19 5,12 12,5"/></svg>
@@ -1773,13 +1755,11 @@
             <div class="auth-grid-wrap">
                 <canvas class="auth-canvas" id="authCanvas"></canvas>
                 <div class="auth-grid" id="authGrid">
-                    <!-- 9 dots will be generated by JS -->
-                </div>
+                    </div>
             </div>
             <div class="auth-reset-btn" onclick="resetPattern()">↺ Reset</div>
         </div>
 
-        <!-- ─── Transaction History Screen ─── -->
         <div class="txn-screen" id="txnScreen">
             <div class="txn-header">
                 <div class="txn-title">📋 Transaction History</div>
@@ -1788,11 +1768,9 @@
                 </div>
             </div>
             <div class="txn-list" id="txnList">
-                <!-- transactions will be rendered here -->
-            </div>
+                </div>
         </div>
 
-        <!-- Success screen -->
         <div class="success-screen" id="successScreen">
             <div class="succ-topbar">
                 <div class="succ-icon-btn" onclick="closeSuccess()">
@@ -1834,7 +1812,6 @@
             <div class="succ-unbox">Unbox Rewards</div>
         </div>
 
-        <!-- ─── QR MODAL (Your QR) ─── -->
         <div class="qr-modal-overlay" id="qrModalOverlay">
             <div class="qr-modal-content">
                 <div class="qr-modal-close" onclick="closeQRModal()">
@@ -1845,12 +1822,12 @@
         </div>
 
     </div>
-    <!-- /phone -->
-
     <audio id="paymentSound" src="payment.mp3" preload="auto"></audio>
 
+    <script src="cordova.js"></script>
+
     <script>
-        // ── =================== UPI PARSING (Enhanced for merchant) =================== ──
+        // ── =================== UPI PARSING =================== ──
         function parseUPIData(raw) {
             if (!raw) return null;
             let url = raw.trim();
@@ -1976,7 +1953,7 @@
         let pendingAmount = '';
         let frameCount = 0;
 
-        // ── =================== CAMERA / SCANNER using BarcodeDetector =================== ──
+        // ── =================== CAMERA / SCANNER =================== ──
         let camStream = null;
         let scanLoopId = null;
         let flashMode = 'auto';
@@ -1986,7 +1963,6 @@
         const DARK_THRESHOLD = 70;
         const BRIGHT_THRESHOLD = 95;
 
-        // Check if BarcodeDetector is supported
         let barcodeDetector = null;
         let isBarcodeSupported = false;
 
@@ -1995,19 +1971,14 @@
                 try {
                     barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] });
                     isBarcodeSupported = true;
-                    console.log('BarcodeDetector supported.');
-                } catch (e) {
-                    console.warn('BarcodeDetector creation failed:', e);
-                }
-            } else {
-                console.warn('BarcodeDetector not supported in this browser.');
+                } catch (e) {}
             }
         })();
 
         // ── =================== CAMERA FUNCTIONS =================== ──
         function openCamera() {
             if (!isBarcodeSupported) {
-                showToast('❌ BarcodeDetector not supported. Use Chrome/Edge.', 'error');
+                showToast('❌ BarcodeDetector not supported.', 'error');
                 return;
             }
             const overlay = document.getElementById('cameraOverlay');
@@ -2113,14 +2084,14 @@
             }
         }
 
-        // ── =================== SCANNING LOOP (FIXED) =================== ──
+        // ── =================== SCANNING LOOP =================== ──
         function scanLoop() {
             const video = document.getElementById('camVideo');
             const canvas = document.getElementById('camCanvas');
             if (!canvas) return;
             const ctx = canvas.getContext('2d', { willReadFrequently: true });
             let lastDetectionTime = 0;
-            const detectionInterval = 150; // ms between detections
+            const detectionInterval = 150; 
 
             async function tick() {
                 if (!camStream || !isScanning) return;
@@ -2129,11 +2100,9 @@
                     if (now - lastDetectionTime >= detectionInterval) {
                         lastDetectionTime = now;
                         try {
-                            // Draw current frame to canvas
                             canvas.width = video.videoWidth;
                             canvas.height = video.videoHeight;
                             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                            // Convert canvas to ImageBitmap for detection
                             const bitmap = await createImageBitmap(canvas);
                             const barcodes = await barcodeDetector.detect(bitmap);
                             if (barcodes.length > 0) {
@@ -2141,16 +2110,12 @@
                                 handleQRCode(rawData);
                                 return;
                             }
-                            // Auto brightness check using imageData
                             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                             frameCount++;
                             if (frameCount % 15 === 0) {
                                 checkAutoBrightness(imageData);
                             }
-                        } catch (e) {
-                            // Fallback: if detection fails, just continue
-                            // console.debug('Detection error:', e);
-                        }
+                        } catch (e) {}
                     }
                 }
                 scanLoopId = requestAnimationFrame(tick);
@@ -2158,7 +2123,6 @@
             scanLoopId = requestAnimationFrame(tick);
         }
 
-        // ── =================== HANDLE QR DATA =================== ──
         function handleQRCode(rawData) {
             if (!isScanning) return;
             isScanning = false;
@@ -2181,12 +2145,11 @@
             }
         }
 
-        // ── =================== FILE UPLOAD (GALLERY) using BarcodeDetector =================== ──
         function handleFileUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
             if (!isBarcodeSupported) {
-                showToast('❌ BarcodeDetector not supported. Use Chrome/Edge.', 'error');
+                showToast('❌ BarcodeDetector not supported.', 'error');
                 return;
             }
             showToast('🔄 Processing image...', 'info');
@@ -2215,19 +2178,11 @@
                                 showToast('❌ No QR found in image', 'error');
                             }
                         } catch (err) {
-                            showToast('❌ Error processing image: ' + err.message, 'error');
+                            showToast('❌ Error processing image', 'error');
                         }
                     };
-                    img.onerror = function() {
-                        showToast('Failed to load image', 'error');
-                    };
                     img.src = e.target.result;
-                } catch (err) {
-                    showToast('❌ Error reading file: ' + err.message, 'error');
-                }
-            };
-            reader.onerror = function() {
-                showToast('Failed to read file', 'error');
+                } catch (err) {}
             };
             reader.readAsDataURL(file);
             event.target.value = '';
@@ -2305,9 +2260,9 @@
             }, 1200);
         }
 
-        // ── =================== AUTHENTICATION (PATTERN) =================== ──
+        // ── =================== AUTHENTICATION =================== ──
         let selectedIndices = [];
-        const correctPattern = [3, 7, 6, 4]; // 4,8,7,5 (0-indexed)
+        const correctPattern = [3, 7, 6, 4];
         let patternLocked = false;
 
         function openAuthScreen() {
@@ -2319,7 +2274,6 @@
 
         function closeAuthScreen() {
             document.getElementById('authScreen').classList.remove('open');
-            // Go back to amount screen
             openAmountScreen();
         }
 
@@ -2393,7 +2347,6 @@
                 const isCorrect = arraysEqual(selectedIndices, correctPattern);
                 if (isCorrect) {
                     document.getElementById('authError').textContent = '✅ Pattern correct!';
-                    // Save transaction
                     saveTransaction(pendingAmount);
                     setTimeout(() => {
                         closeAuthScreen();
@@ -2494,7 +2447,7 @@
             return div.innerHTML;
         }
 
-        // ── =================== SUCCESS SCREEN =================== ──
+        // ── =================== SUCCESS SCREEN & NOTIFICATION =================== ──
         function formatTxnId() {
             let id = 'FMPIB';
             for (let i = 0; i < 10; i++) id += Math.floor(Math.random() * 10);
@@ -2524,55 +2477,29 @@
             document.getElementById('successScreen').classList.add('open');
             window.scrollTo({ top: 0, behavior: 'auto' });
 
-            // Play payment sound
             const sound = document.getElementById('paymentSound');
             sound.currentTime = 0;
             sound.play().catch(() => {});
             showToast('✅ Payment successful!', 'success');
-        // 1. App start hote hi Notification permission maangne ke liye ye function:
-document.addEventListener('deviceready', function() {
-    if (window.cordova && cordova.plugins && cordova.plugins.permissions) {
-        var permissions = cordova.plugins.permissions;
-        // Android 13+ ke liye Notification permission trigger karega
-        permissions.checkPermission("android.permission.POST_NOTIFICATIONS", function(status) {
-            if (!status.hasPermission) {
-                permissions.requestPermission("android.permission.POST_NOTIFICATIONS", function(s) {
-                    console.log("Notification permission allowed");
-                }, null);
+
+            // NEW: Native Local Notification Trigger
+            if (window.cordova && cordova.plugins && cordova.plugins.notification) {
+                cordova.plugins.notification.local.schedule({
+                    id: new Date().getTime(),
+                    title: 'Payment Successful! ✅',
+                    text: '₹' + (amount || '10') + ' successfully paid to ' + (scannedName || 'AMAYA KUMAR PADHI') + '.',
+                    foreground: true,
+                    vibrate: true,
+                    wakeup: true,
+                    priority: 2
+                });
             }
-        }, null);
-    }
-}, false);
-
-// HTML ke showSuccessScreen function ke andar isko paste karo:
-if (window.cordova && cordova.plugins && cordova.plugins.notification) {
-    cordova.plugins.notification.local.schedule({
-        id: new Date().getTime(), // Har baar naya ID taaki purana overwrite na ho
-        title: 'Payment Successful! ✅',
-        text: '₹' + (amount || '10') + ' successfully paid to AMAYA KUMAR PADHI.',
-        foreground: true, // App open hone par bhi top se notification aayega
-        vibrate: true,    // Notification aate hi phone vibrate karega
-        wakeup: true,     // Screen off hone par screen on kar dega
-        priority: 2       // High priority (Heads-up banner ke liye)
-        // Note: smallIcon line ko hata diya gaya hai taaki Android khud default app logo utha le aur crash na ho.
-    });
-} else {
-    console.log("Notification plugin load nahi hua.");
-}
-
-
-        
-        
-        
-        
-        
         }
 
         function closeSuccess() {
             document.getElementById('successScreen').classList.remove('open');
         }
 
-        // ── =================== QR MODAL (Your QR) =================== ──
         function openQRModal() {
             document.getElementById('qrModalOverlay').classList.add('open');
         }
@@ -2594,6 +2521,20 @@ if (window.cordova && cordova.plugins && cordova.plugins.notification) {
             }
         });
 
+        // ── =================== CORDOVA DEVICE READY (For Notifications Popup) =================== ──
+        document.addEventListener('deviceready', function() {
+            if (window.cordova && cordova.plugins && cordova.plugins.permissions) {
+                var permissions = cordova.plugins.permissions;
+                permissions.checkPermission("android.permission.POST_NOTIFICATIONS", function(status) {
+                    if (!status.hasPermission) {
+                        permissions.requestPermission("android.permission.POST_NOTIFICATIONS", function(s) {
+                            console.log("Notification permission allowed");
+                        }, null);
+                    }
+                }, null);
+            }
+        }, false);
+
         // ── =================== EXPOSE =================== ──
         window.openCamera = openCamera;
         window.closeCamera = closeCamera;
@@ -2613,7 +2554,6 @@ if (window.cordova && cordova.plugins && cordova.plugins.notification) {
         window.closeQRModal = closeQRModal;
     </script>
 
-    <!-- Toast element -->
     <div id="toast" class="toast">
         <i class="fas" id="toastIcon"></i>
         <span id="toastMessage">Message</span>
